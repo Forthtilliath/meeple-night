@@ -1,0 +1,18 @@
+# Discord bots keep a gateway connection open: no HTTP service, the machine runs continuously.
+# Deploy a single machine only (SQLite file + one gateway session): `fly deploy --ha=false`.
+app = "discord-gameboard-planner"
+primary_region = "cdg"
+
+[build]
+
+[env]
+  DATABASE_PATH = "/data/bot.db"
+  TIMEZONE = "Europe/Paris"
+
+[[mounts]]
+  source = "bot_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
