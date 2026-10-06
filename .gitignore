@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+
+# Local data
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+collection.json
+
+# Markdown: only README and CHANGELOG are tracked
+*.md
+!README.md
+!CHANGELOG.md

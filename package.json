@@ -1,0 +1,35 @@
+{
+  "name": "discord-gameboard-planner",
+  "version": "0.1.0",
+  "description": "Discord bot for board game groups: game nights, RSVP, reminders, game votes, MyLudo collection import, play tracking and Elo ranking.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "discord.js": "^14.27.0",
+    "drizzle-orm": "^0.45.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^24.0.0",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}
