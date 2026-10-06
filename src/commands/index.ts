@@ -1,0 +1,13 @@
+import type { Command, ComponentHandler } from '../bot/types.js';
+import { pollHandler } from '../components/poll.js';
+import { rsvpHandler } from '../components/rsvp.js';
+import { collection } from './collection.js';
+import { gamenight } from './gamenight.js';
+import { leaderboard } from './leaderboard.js';
+import { ping } from './ping.js';
+import { play } from './play.js';
+import { vote } from './vote.js';
+
+export const commands: Command[] = [ping, gamenight, collection, vote, play, leaderboard];
+
+export const componentHandlers: ComponentHandler[] = [rsvpHandler, pollHandler];
