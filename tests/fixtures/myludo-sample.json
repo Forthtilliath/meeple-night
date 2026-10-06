@@ -1,0 +1,53 @@
+[
+  {
+    "ID": 4680,
+    "Titre": "7 Wonders",
+    "Édition": 2010,
+    "Type": "basegame",
+    "Joueur(s)": "2 — 7",
+    "Durée": 30,
+    "Age(s)": "10+",
+    "Catégorie(s)": ["Jeu de Cartes"],
+    "Mécanisme(s)": ["Draft", "Collection"],
+    "Note moyenne": 7.9
+  },
+  {
+    "ID": 32238,
+    "Titre": "6 qui Surprend !",
+    "Édition": 2019,
+    "Type": "basegame",
+    "Joueur(s)": "2 — 10",
+    "Durée": "30 — 60",
+    "Age(s)": "8+",
+    "Catégorie(s)": ["Jeu de Cartes"],
+    "Mécanisme(s)": ["Bluff"],
+    "Note moyenne": 7.2
+  },
+  {
+    "ID": 1001,
+    "Titre": "Jeu en duo",
+    "Édition": "",
+    "Type": "standalone",
+    "Joueur(s)": "Duo",
+    "Durée": 20,
+    "Age(s)": "12+"
+  },
+  {
+    "ID": 1002,
+    "Titre": "Grande soirée",
+    "Type": "basegame",
+    "Joueur(s)": "2+",
+    "Durée": "60 — 120"
+  },
+  {
+    "ID": 1003,
+    "Titre": "Une extension",
+    "Type": "extension",
+    "Joueur(s)": "2 — 4"
+  },
+  {
+    "ID": 1004,
+    "Titre": "Un accessoire",
+    "Type": "accessoire"
+  }
+]
