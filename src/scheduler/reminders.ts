@@ -15,8 +15,6 @@ import { getRsvps, markReminderSent, nightsStartingBefore } from '../repositorie
 import { nightUrl } from '../ui/night-message.js';
 import { plain } from '../ui/text.js';
 
-const CHECK_INTERVAL_MS = 60_000;
-
 async function sendReminder({ client, db }: BotContext, { night, kind }: DueReminder) {
   const people = attendance(getRsvps(db, night.id), night.maxPlayers);
   const url = nightUrl(night);
@@ -57,15 +55,4 @@ export async function checkReminders(ctx: BotContext, now = new Date()): Promise
       log.error('Reminder failed, will retry', { nightId: reminder.night.id, error }),
     );
   }
-}
-
-/** Checks every minute for game nights that need a reminder. Returns a stop function. */
-export function startReminderLoop(ctx: BotContext): () => void {
-  const tick = () => {
-    // Before login or while reconnecting, channels can't be fetched: wait for the next tick.
-    if (!ctx.client.isReady()) return;
-    checkReminders(ctx).catch((error) => log.error('Reminder check failed', { error }));
-  };
-  const timer = setInterval(tick, CHECK_INTERVAL_MS);
-  return () => clearInterval(timer);
 }

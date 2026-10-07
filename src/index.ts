@@ -7,7 +7,7 @@ import { loadConfig } from './config.js';
 import { createDb } from './db/client.js';
 import { log } from './log.js';
 import { purgeGuild } from './repositories/guilds.js';
-import { startReminderLoop } from './scheduler/reminders.js';
+import { startScheduler } from './scheduler/index.js';
 
 const config = loadConfig();
 const db = createDb(config.databasePath);
@@ -29,7 +29,7 @@ client.on(Events.GuildDelete, (guild) => {
   log.info('Left guild, data purged', { guildId: guild.id });
 });
 
-const stopReminders = startReminderLoop(ctx);
+const stopScheduler = startScheduler(ctx);
 
 client.once(Events.ClientReady, async (ready) => {
   log.info('Logged in', { user: ready.user.tag, guilds: ready.guilds.cache.size });
@@ -41,7 +41,7 @@ client.once(Events.ClientReady, async (ready) => {
 
 const shutdown = async (signal: string) => {
   log.info('Shutting down', { signal });
-  stopReminders();
+  stopScheduler();
   await client.destroy();
   db.$client.close();
   process.exit(0);
