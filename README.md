@@ -114,6 +114,7 @@ Requirements: Node.js 24+.
 | `npm test` | Unit and integration tests (Vitest) |
 | `npm run check` | Lint, typecheck, tests and build, as in CI |
 | `npm run db:generate` | Generate a migration after a schema change |
+| `npm run pack:panel` | Archive ready to upload to a [panel host](#deployment-panel-host-katabump-pterodactyl) |
 
 ## Deployment (Fly.io)
 
@@ -144,10 +145,12 @@ To restore a copy: stop the machine, replace `/data/bot.db` with `/data/backups/
 Free bot hosts built on a Pterodactyl panel (such as [KataBump](https://katabump.com)) run `node index.js` and often offer no way to set environment variables. The root [`index.js`](index.js) covers both: it loads a `.env` file if there is one, then starts the compiled bot.
 
 1. Create a Node.js server and pick a **Node.js 24** Docker image in *Startup*; keep the JS file on `index.js`.
-2. Build locally with `npm run build`, then upload `index.js`, `dist/`, `drizzle/`, `package.json` and `package-lock.json` through the *Files* tab. Leave `node_modules` out: the panel installs the dependencies for its own platform.
-3. Create a `.env` file next to them (`DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, `DATABASE_PATH=./data/bot.db`; see [`.env.example`](.env.example)) and start the server.
+2. Run `npm run pack:panel`: it builds `meeple-night-panel.tar.gz` with `index.js`, `dist/`, `drizzle/` and the production dependencies, including the Linux x64 binary of better-sqlite3 even when packing from Windows or macOS.
+3. Upload the archive through the *Files* tab, unarchive it, create a `.env` file next to it (`DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, `DATABASE_PATH=./data/bot.db`; see [`.env.example`](.env.example)) and start the server.
 
-To update, rebuild and upload `dist/` again (and `drizzle/` after a schema change): `.env` and `data/` stay in place. Download a copy from `data/backups/` from time to time, since a free server can be lost with its disk.
+To update, pack again and unarchive over the previous files: `.env` and `data/` stay in place. Download a copy from `data/backups/` from time to time, since a free server can be lost with its disk.
+
+better-sqlite3 stays on version 12: from version 13, its Linux binary needs glibc 2.34, newer than the images of some panels (`GLIBC_2.33 not found` at startup).
 
 ### Renewal reminder
 
