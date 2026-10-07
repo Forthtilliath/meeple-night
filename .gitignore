@@ -1,6 +1,9 @@
 node_modules/
 dist/
 coverage/
+# npm run pack:panel
+panel-build/
+meeple-night-panel.tar.gz
 
 # Local data
 data/

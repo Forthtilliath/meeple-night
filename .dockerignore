@@ -9,3 +9,5 @@ tests
 *.db
 *.md
 collection.json
+panel-build
+meeple-night-panel.tar.gz
