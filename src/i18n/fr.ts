@@ -65,12 +65,19 @@ export const fr: Messages = {
     invalidFile: 'Joins le fichier `.json` exporté depuis MyLudo.',
     tooLarge: 'Ce fichier est trop volumineux (5 Mo maximum).',
     parseError: 'Ce fichier ne ressemble pas à un export de collection MyLudo.',
-    imported: (created, updated, skipped) =>
-      `Import terminé : **${created}** nouveaux jeux, **${updated}** mis à jour, ${skipped} extensions/accessoires ignorés.`,
+    imported: (created, updated, skipped, archived) =>
+      `Import terminé : **${created}** nouveaux jeux, **${updated}** mis à jour, ${skipped} extensions/accessoires ignorés${archived ? `, **${archived}** retirés` : ''}.`,
+    page: (page, pages) => `Page ${page}/${pages}`,
+    previous: 'Précédent',
+    next: 'Suivant',
+    added: (title) => `**${title}** ajouté à la collection.`,
+    duplicate: 'Ce jeu est déjà dans la collection.',
+    removed: (title) =>
+      `**${title}** retiré de la collection. Ses parties restent dans les classements.`,
+    invalidRange: 'Le nombre minimum de joueurs dépasse le maximum.',
     empty: 'La collection est vide. Importe-la avec `/collection importer`.',
     noMatch: 'Aucun jeu ne correspond à ces filtres.',
     listTitle: (count) => `Collection — ${count} ${count > 1 ? 'jeux' : 'jeu'}`,
-    more: (count) => `…et ${count} de plus. Affine avec les filtres.`,
     players: 'Joueurs',
     duration: 'Durée',
     age: 'Âge',
