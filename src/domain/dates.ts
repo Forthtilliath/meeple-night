@@ -50,6 +50,21 @@ export function parseLocalDateTime(date: string, time: string, timeZone: string)
   return new Date(result);
 }
 
+/** Wall-clock date ("2026-10-24") and time ("20:30") of an instant in a timezone. */
+export function localDateTime(instant: Date, timeZone: string): { date: string; time: string } {
+  const local = new Date(instant.getTime() + timezoneOffset(instant, timeZone));
+  const iso = local.toISOString();
+  return { date: iso.slice(0, 10), time: iso.slice(11, 16) };
+}
+
+/** Same wall-clock time `days` later in the timezone, whatever DST changes in between. */
+export function addLocalDays(instant: Date, days: number, timeZone: string): Date {
+  const { date, time } = localDateTime(instant, timeZone);
+  const shifted = new Date(`${date}T00:00:00Z`);
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return parseLocalDateTime(shifted.toISOString().slice(0, 10), time, timeZone) ?? instant;
+}
+
 export function isValidTimezone(timeZone: string): boolean {
   try {
     new Intl.DateTimeFormat('en', { timeZone });

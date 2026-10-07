@@ -48,6 +48,16 @@ export interface Attendance {
   declined: string[];
 }
 
+/** Users moved from the waitlist to the confirmed list between two states of a night. */
+export function promotedUsers(before: Attendance, after: Attendance): string[] {
+  return after.confirmed.filter((id) => before.waitlist.includes(id));
+}
+
+/** Everyone who said yes or maybe: the people to warn about a change. */
+export function interestedUsers(people: Attendance): string[] {
+  return [...people.confirmed, ...people.waitlist, ...people.maybe];
+}
+
 /** Splits RSVPs; "yes" answers beyond the player cap go to the waitlist, first come first served. */
 export function attendance(rsvps: Rsvp[], maxPlayers: number | null): Attendance {
   const byDate = [...rsvps].sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime());
