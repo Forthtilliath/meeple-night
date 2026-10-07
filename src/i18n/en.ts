@@ -105,6 +105,17 @@ export const en = {
     needNight: 'Pick a night to restrict the vote to its attendees.',
     tooMany: (max: number) => `You already have ${max} open votes: close one first.`,
     autoClosed: (result: string, url: string) => `🗳️ Vote closed. ${result}\n${url}`,
+    pickTitle: 'Choose the games of the vote',
+    pickIntro: (count: number, max: number) =>
+      `${count} game${count > 1 ? 's' : ''} match. Tick between 2 and ${max}, then start the vote.`,
+    pickTruncated: (shown: number) =>
+      `Only the first ${shown} are listed: narrow the filters to see the others.`,
+    pickPlaceholder: 'Tick the games to offer',
+    pickSelection: (count: number) => `Selected (${count})`,
+    pickNone: 'No game selected yet.',
+    pickLaunch: (count: number) => `Start the vote (${count})`,
+    pickCount: (max: number) => `Tick between 2 and ${max} games.`,
+    pickDone: '✅ Vote started.',
   },
   play: {
     needTwoPlayers: 'A play needs at least 2 players.',
