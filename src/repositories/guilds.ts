@@ -1,6 +1,13 @@
 import { eq } from 'drizzle-orm';
 import type { Db } from '../db/client.js';
-import { type GuildSettingsRow, guildSettings } from '../db/schema.js';
+import {
+  type GuildSettingsRow,
+  gameNights,
+  games,
+  guildSettings,
+  plays,
+  polls,
+} from '../db/schema.js';
 
 export interface GuildSettings {
   timezone: string;
@@ -24,6 +31,17 @@ export function getSettings(db: Db, guildId: string, defaultTimezone: string): G
     reminderEarlyHours: row?.reminderEarlyHours ?? DEFAULT_REMINDER_HOURS.early,
     reminderLateHours: row?.reminderLateHours ?? DEFAULT_REMINDER_HOURS.late,
   };
+}
+
+/** Deletes everything stored for a guild (children rows go with their parents by cascade). */
+export function purgeGuild(db: Db, guildId: string): void {
+  db.transaction((tx) => {
+    tx.delete(polls).where(eq(polls.guildId, guildId)).run();
+    tx.delete(plays).where(eq(plays.guildId, guildId)).run();
+    tx.delete(gameNights).where(eq(gameNights.guildId, guildId)).run();
+    tx.delete(games).where(eq(games.guildId, guildId)).run();
+    tx.delete(guildSettings).where(eq(guildSettings.guildId, guildId)).run();
+  });
 }
 
 export function updateSettings(db: Db, guildId: string, patch: SettingsPatch): void {
