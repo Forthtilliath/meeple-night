@@ -19,7 +19,7 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "~12.11.1",
     "discord.js": "^14.27.0",
     "drizzle-orm": "^0.45.3"
   },

@@ -2,8 +2,8 @@
 FROM node:24-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-# better-sqlite3 ships prebuilt binaries: skip npm's implicit node-gyp step (needs Python).
-RUN npm ci --ignore-scripts
+# Only better-sqlite3's install script runs: it downloads the prebuilt binary (no Python needed).
+RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 RUN npm run build && npm prune --omit=dev
