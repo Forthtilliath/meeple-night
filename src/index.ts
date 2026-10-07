@@ -5,6 +5,7 @@ import type { BotContext } from './bot/types.js';
 import { commands, componentHandlers } from './commands/index.js';
 import { loadConfig } from './config.js';
 import { createDb } from './db/client.js';
+import { log } from './log.js';
 import { startReminderLoop } from './scheduler/reminders.js';
 
 const config = loadConfig();
@@ -17,7 +18,7 @@ const ctx: BotContext = { client, db, timezone: config.timezone };
 client.on(Events.InteractionCreate, createRouter(commands, componentHandlers, ctx));
 
 client.once(Events.ClientReady, async (ready) => {
-  console.log(`Logged in as ${ready.user.tag}`);
+  log.info('Logged in', { user: ready.user.tag, guilds: ready.guilds.cache.size });
   await registerCommands(config, commands);
   const stopReminders = startReminderLoop(ctx);
 

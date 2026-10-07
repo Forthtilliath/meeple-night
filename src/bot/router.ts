@@ -1,5 +1,6 @@
 import { type Interaction, type InteractionReplyOptions, MessageFlags } from 'discord.js';
 import { t } from '../i18n/index.js';
+import { log } from '../log.js';
 import type { BotContext, Command, ComponentHandler } from './types.js';
 
 /** Dispatches slash commands, autocompletes and components, and reports errors to the user. */
@@ -32,7 +33,13 @@ export function createRouter(
         await byPrefix.get(prefix)?.handle(interaction, args, ctx);
       }
     } catch (error) {
-      console.error('Interaction failed', error);
+      log.error('Interaction failed', {
+        guildId: interaction.guildId,
+        userId: interaction.user.id,
+        command: 'commandName' in interaction ? interaction.commandName : undefined,
+        customId: 'customId' in interaction ? interaction.customId : undefined,
+        error,
+      });
       if (!interaction.isRepliable()) return;
       const reply: InteractionReplyOptions = {
         content: t(interaction.locale).common.error,
