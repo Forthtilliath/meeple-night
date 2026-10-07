@@ -170,4 +170,11 @@ export const fr: Messages = {
     invalidReminders: 'Le second rappel doit être plus proche de la soirée que le premier.',
     saved: 'Réglages enregistrés.',
   },
+  renewal: {
+    reminder: (deadline, relative) =>
+      `⏳ L'hébergement du bot doit être renouvelé avant le ${deadline} (${relative}), sinon il sera suspendu.`,
+    done: "C'est renouvelé",
+    open: 'Ouvrir le panel',
+    saved: (next) => `✅ Renouvellement noté. Prochain rappel ${next}.`,
+  },
 };

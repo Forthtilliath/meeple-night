@@ -166,6 +166,13 @@ export const en = {
     invalidReminders: 'The second reminder must be closer to the night than the first one.',
     saved: 'Settings saved.',
   },
+  renewal: {
+    reminder: (deadline: string, relative: string) =>
+      `⏳ The bot's hosting must be renewed before ${deadline} (${relative}), or it will be suspended.`,
+    done: 'Renewed',
+    open: 'Open the panel',
+    saved: (next: string) => `✅ Renewal noted. Next reminder ${next}.`,
+  },
 };
 
 export type Messages = typeof en;
