@@ -27,7 +27,19 @@ export const en = {
     maybe: 'Maybe',
     declined: "Can't make it",
     nobody: '—',
-    footer: (id: number) => `Game night #${id}`,
+    footer: (id: number, recurrence: 'weekly' | 'biweekly' | null) =>
+      `Game night #${id}${recurrence ? ` · ${recurrence === 'weekly' ? 'every week' : 'every other week'}` : ''}`,
+    game: 'Game',
+    calendar: 'Calendar',
+    calendarFile: 'Open this file to add the night to your calendar.',
+    tooMany: (max: number) =>
+      `You already organize ${max} upcoming nights. Cancel one, or ask an organizer.`,
+    nothingToEdit: 'Nothing to change: fill in at least one option.',
+    edited: 'Game night updated.',
+    noticeCancelled: (title: string, when: string) => `❌ **${title}** (${when}) is cancelled.`,
+    noticeChanged: (title: string, when: string, location: string | null) =>
+      `✏️ **${title}** has changed: ${when}${location ? ` · ${location}` : ''}.`,
+    noticePromoted: (title: string) => `🎉 A seat opened up for **${title}**: you're in!`,
     cancelledTitle: (title: string) => `${title} (cancelled)`,
     cancelled: 'Game night cancelled.',
     noUpcoming: 'No upcoming game night. Create one with `/gamenight create`.',

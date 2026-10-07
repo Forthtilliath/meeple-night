@@ -5,6 +5,7 @@ const PERMANENT = new Set<unknown>([
   RESTJSONErrorCodes.UnknownChannel,
   RESTJSONErrorCodes.UnknownGuild,
   RESTJSONErrorCodes.UnknownMessage,
+  RESTJSONErrorCodes.UnknownGuildScheduledEvent,
   RESTJSONErrorCodes.MissingAccess,
   RESTJSONErrorCodes.MissingPermissions,
 ]);
