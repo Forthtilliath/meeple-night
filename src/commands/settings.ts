@@ -7,10 +7,13 @@ import {
 } from 'discord.js';
 import type { BotContext, ChatInput, Command } from '../bot/types.js';
 import { isValidTimezone } from '../domain/dates.js';
-import { localize, lt, t } from '../i18n/index.js';
+import { localize, lt, t, toLocale } from '../i18n/index.js';
 import { getSettings, MAX_REMINDER_HOURS, updateSettings } from '../repositories/guilds.js';
 
 const TIMEZONES = Intl.supportedValuesOf('timeZone');
+/** Choice that clears the setting, so the Discord server language applies again. */
+const AUTO_LOCALE = 'auto';
+const LANGUAGE_NAMES = { en: 'English', fr: 'Français' } as const;
 
 const data = localize(
   new SlashCommandBuilder(),
@@ -87,6 +90,29 @@ const data = localize(
           .setMinValue(1)
           .setMaxValue(24),
       ),
+  )
+  .addSubcommand((sub) =>
+    localize(
+      sub,
+      lt(
+        'language',
+        'Language of the public messages (nights, votes, reminders)',
+        'langue',
+        'Langue des messages publics (soirées, votes, rappels)',
+      ),
+    ).addStringOption((o) =>
+      localize(o, lt('value', 'Language to use', 'valeur', 'Langue à utiliser'))
+        .setRequired(true)
+        .addChoices(
+          { name: 'Français', value: 'fr' },
+          { name: 'English', value: 'en' },
+          {
+            name: 'Discord server language',
+            name_localizations: { fr: 'Langue du serveur Discord' },
+            value: AUTO_LOCALE,
+          },
+        ),
+    ),
   );
 
 async function show(interaction: ChatInput, { db, timezone }: BotContext) {
@@ -102,6 +128,10 @@ async function show(interaction: ChatInput, { db, timezone }: BotContext) {
     {
       name: m.reminders,
       value: m.reminderHours(settings.reminderEarlyHours, settings.reminderLateHours),
+    },
+    {
+      name: m.language,
+      value: settings.locale ? LANGUAGE_NAMES[settings.locale] : m.languageAuto,
     },
   );
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -131,6 +161,10 @@ export const settings: Command = {
     } else if (sub === 'organizer_role') {
       const role = interaction.options.getRole('role');
       updateSettings(db, interaction.guildId, { organizerRoleId: role?.id ?? null });
+    } else if (sub === 'language') {
+      const value = interaction.options.getString('value', true);
+      const locale = value === AUTO_LOCALE ? null : toLocale(value);
+      updateSettings(db, interaction.guildId, { locale });
     } else {
       const early = interaction.options.getInteger('first', true);
       const late = interaction.options.getInteger('second', true);

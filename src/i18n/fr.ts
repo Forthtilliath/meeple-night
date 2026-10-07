@@ -153,6 +153,8 @@ export const fr: Messages = {
     noRole: 'Aucun : seuls les membres avec *Gérer le serveur*',
     reminders: 'Rappels',
     reminderHours: (early, late) => `${early} h et ${late} h avant la soirée`,
+    language: 'Langue des messages publics',
+    languageAuto: 'Langue du serveur Discord',
     invalidTimezone: 'Fuseau inconnu. Choisis-en un dans la liste, ex. `Europe/Paris`.',
     invalidReminders: 'Le second rappel doit être plus proche de la soirée que le premier.',
     saved: 'Réglages enregistrés.',
