@@ -19,6 +19,10 @@ function night(id: number, startsAt: Date, overrides: Partial<GameNight> = {}): 
     status: 'scheduled',
     reminderDaySent: false,
     reminderHoursSent: false,
+    gameId: null,
+    scheduledEventId: null,
+    recurrence: null,
+    startHandled: false,
     createdAt: now,
     ...overrides,
   };
