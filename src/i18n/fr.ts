@@ -109,6 +109,17 @@ export const fr: Messages = {
     needNight: 'Choisis une soirée pour réserver le vote à ses inscrits.',
     tooMany: (max) => `Tu as déjà ${max} votes ouverts : clos-en un d'abord.`,
     autoClosed: (result, url) => `🗳️ Vote clos. ${result}\n${url}`,
+    pickTitle: 'Choisis les jeux du vote',
+    pickIntro: (count, max) =>
+      `${count} ${count > 1 ? 'jeux correspondent' : 'jeu correspond'}. Coches-en entre 2 et ${max}, puis lance le vote.`,
+    pickTruncated: (shown) =>
+      `Seuls les ${shown} premiers sont listés : affine les filtres pour voir les autres.`,
+    pickPlaceholder: 'Coche les jeux à proposer',
+    pickSelection: (count) => `Sélection (${count})`,
+    pickNone: 'Aucun jeu coché pour l’instant.',
+    pickLaunch: (count) => `Lancer le vote (${count})`,
+    pickCount: (max) => `Coche entre 2 et ${max} jeux.`,
+    pickDone: '✅ Vote lancé.',
   },
   play: {
     needTwoPlayers: 'Une partie demande au moins 2 joueurs.',

@@ -4,13 +4,14 @@ import { collectionPageHandler } from '../components/collection-page.js';
 import { playModalHandler } from '../components/play-modal.js';
 import { pollHandler } from '../components/poll.js';
 import { rsvpHandler } from '../components/rsvp.js';
+import { votePickerHandler } from '../components/vote-picker.js';
 import { collection } from './collection/index.js';
 import { gamenight } from './gamenight/index.js';
 import { leaderboard } from './leaderboard.js';
 import { ping } from './ping.js';
 import { play } from './play/index.js';
 import { settings } from './settings.js';
-import { vote } from './vote.js';
+import { vote } from './vote/index.js';
 
 export const commands: Command[] = [ping, gamenight, collection, vote, play, leaderboard, settings];
 
@@ -19,6 +20,7 @@ export const componentHandlers: ComponentHandler[] = [
   calendarHandler,
   pollHandler,
   collectionPageHandler,
+  votePickerHandler,
 ];
 
 export const modalHandlers: ModalHandler[] = [playModalHandler];
