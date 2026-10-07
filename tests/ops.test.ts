@@ -40,6 +40,24 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, BACKUP_KEEP: '-1' })).toThrow(/BACKUP_KEEP/);
     expect(() => loadConfig({ DISCORD_TOKEN: 't' })).toThrow(/DISCORD_CLIENT_ID/);
   });
+
+  it('enables the renewal reminder with a user id', () => {
+    expect(loadConfig(base).renewal).toBeNull();
+    const userId = '123456789012345678';
+    expect(loadConfig({ ...base, RENEWAL_USER_ID: userId }).renewal).toEqual({
+      userId,
+      days: 4,
+      url: null,
+      locale: 'en',
+    });
+    expect(() => loadConfig({ ...base, RENEWAL_USER_ID: '@me' })).toThrow(/RENEWAL_USER_ID/);
+    expect(() => loadConfig({ ...base, RENEWAL_USER_ID: userId, RENEWAL_DAYS: '1' })).toThrow(
+      /RENEWAL_DAYS/,
+    );
+    expect(() =>
+      loadConfig({ ...base, RENEWAL_USER_ID: userId, RENEWAL_URL: 'javascript:alert(1)' }),
+    ).toThrow(/RENEWAL_URL/);
+  });
 });
 
 describe('backupDatabase', () => {
