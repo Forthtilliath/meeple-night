@@ -1,4 +1,4 @@
-# Discord bots keep a gateway connection open: no HTTP service, the machine runs continuously.
+# Discord bots keep a gateway connection open: no public HTTP service, the machine runs continuously.
 # Deploy a single machine only (SQLite file + one gateway session): `fly deploy --ha=false`.
 app = "meeple-night"
 primary_region = "cdg"
@@ -8,10 +8,22 @@ primary_region = "cdg"
 [env]
   DATABASE_PATH = "/data/bot.db"
   TIMEZONE = "Europe/Paris"
+  HEALTH_PORT = "8080"
 
 [[mounts]]
   source = "bot_data"
   destination = "/data"
+
+# Machine check on the internal health endpoint (not exposed publicly): visible in
+# `fly checks list`, and a deploy whose bot never connects is reported as failing.
+[checks]
+  [checks.gateway]
+    type = "http"
+    port = 8080
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "60s"
 
 [[vm]]
   size = "shared-cpu-1x"
