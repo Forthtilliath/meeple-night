@@ -149,6 +149,8 @@ export const en = {
     noRole: 'None: only members with *Manage Server*',
     reminders: 'Reminders',
     reminderHours: (early: number, late: number) => `${early} h and ${late} h before the night`,
+    language: 'Language of public messages',
+    languageAuto: 'Discord server language',
     invalidTimezone: 'Unknown timezone. Pick one from the list, e.g. `Europe/Paris`.',
     invalidReminders: 'The second reminder must be closer to the night than the first one.',
     saved: 'Settings saved.',
