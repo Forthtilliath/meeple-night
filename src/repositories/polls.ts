@@ -1,7 +1,15 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq, lte } from 'drizzle-orm';
 import type { Db } from '../db/client.js';
-import { type Game, games, type Poll, pollOptions, polls, pollVotes } from '../db/schema.js';
-import type { Vote } from '../domain/voting.js';
+import {
+  type Game,
+  gameNights,
+  games,
+  type Poll,
+  pollOptions,
+  polls,
+  pollVotes,
+} from '../db/schema.js';
+import { pickWinner, tally, type Vote } from '../domain/voting.js';
 
 export interface NewPoll {
   guildId: string;
@@ -10,6 +18,56 @@ export interface NewPoll {
   players: number | null;
   createdBy: string;
   gameIds: number[];
+  closesAt?: Date | null;
+  attendeesOnly?: boolean;
+}
+
+/** Open polls started by a member, to cap how many one person can run. */
+export function countOpenPollsBy(db: Db, guildId: string, userId: string): number {
+  const row = db
+    .select({ total: count() })
+    .from(polls)
+    .where(and(eq(polls.guildId, guildId), eq(polls.createdBy, userId), eq(polls.status, 'open')))
+    .get();
+  return row?.total ?? 0;
+}
+
+/** Open polls (of every guild) whose closing time has come. */
+export function duePolls(db: Db, now: Date): Poll[] {
+  return db
+    .select()
+    .from(polls)
+    .where(and(eq(polls.status, 'open'), lte(polls.closesAt, now)))
+    .all();
+}
+
+/**
+ * Closes a poll: picks the winner (ties broken at random) and, for a poll linked to a night,
+ * sets it as the night's game. Returns the closed poll.
+ */
+export function finalizePoll(db: Db, poll: Poll, random: () => number = Math.random): Poll {
+  return db.transaction((tx) => {
+    const optionIds = tx
+      .select({ gameId: pollOptions.gameId })
+      .from(pollOptions)
+      .where(eq(pollOptions.pollId, poll.id))
+      .all()
+      .map((o) => o.gameId);
+    const votes = tx
+      .select({ userId: pollVotes.userId, gameId: pollVotes.gameId })
+      .from(pollVotes)
+      .where(eq(pollVotes.pollId, poll.id))
+      .all();
+    const winnerGameId = pickWinner(tally(optionIds, votes), random);
+    tx.update(polls).set({ status: 'closed', winnerGameId }).where(eq(polls.id, poll.id)).run();
+    if (poll.nightId && winnerGameId) {
+      tx.update(gameNights)
+        .set({ gameId: winnerGameId })
+        .where(eq(gameNights.id, poll.nightId))
+        .run();
+    }
+    return { ...poll, status: 'closed' as const, winnerGameId };
+  });
 }
 
 export function createPoll(db: Db, { gameIds, ...poll }: NewPoll): Poll {
@@ -61,8 +119,4 @@ export function getVotes(db: Db, pollId: number): Vote[] {
     .from(pollVotes)
     .where(eq(pollVotes.pollId, pollId))
     .all();
-}
-
-export function closePoll(db: Db, pollId: number): void {
-  db.update(polls).set({ status: 'closed' }).where(eq(polls.id, pollId)).run();
 }

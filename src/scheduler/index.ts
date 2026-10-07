@@ -1,6 +1,7 @@
 import type { BotContext } from '../bot/types.js';
 import { log } from '../log.js';
 import { handleStartedNights } from './nights.js';
+import { closeDuePolls } from './polls.js';
 import { checkReminders } from './reminders.js';
 
 const CHECK_INTERVAL_MS = 60_000;
@@ -10,6 +11,7 @@ type Job = (ctx: BotContext, now: Date) => Promise<void>;
 const JOBS: [string, Job][] = [
   ['reminders', checkReminders],
   ['started nights', handleStartedNights],
+  ['due polls', closeDuePolls],
 ];
 
 /** Runs the time-based jobs every minute. Returns a stop function. */
