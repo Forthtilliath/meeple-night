@@ -14,6 +14,7 @@ export interface GuildSettings {
   organizerRoleId: string | null;
   reminderEarlyHours: number;
   reminderLateHours: number;
+  locale: GuildSettingsRow['locale'];
 }
 
 export type SettingsPatch = Partial<Omit<GuildSettingsRow, 'guildId'>>;
@@ -30,7 +31,18 @@ export function getSettings(db: Db, guildId: string, defaultTimezone: string): G
     organizerRoleId: row?.organizerRoleId ?? null,
     reminderEarlyHours: row?.reminderEarlyHours ?? DEFAULT_REMINDER_HOURS.early,
     reminderLateHours: row?.reminderLateHours ?? DEFAULT_REMINDER_HOURS.late,
+    locale: row?.locale ?? null,
   };
+}
+
+/** Language of the server's public messages: its own setting, else the Discord one. */
+export function serverLocale(db: Db, guildId: string, discordLocale: string): string {
+  const row = db
+    .select({ locale: guildSettings.locale })
+    .from(guildSettings)
+    .where(eq(guildSettings.guildId, guildId))
+    .get();
+  return row?.locale ?? discordLocale;
 }
 
 /** Deletes everything stored for a guild (children rows go with their parents by cascade). */
