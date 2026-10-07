@@ -12,6 +12,8 @@ import { playHistory } from '../repositories/plays.js';
 import { autocompleteAnyGame } from './autocomplete.js';
 
 const TOP = 15;
+/** Ratings move a lot over the first plays: hide them by default to keep the top meaningful. */
+export const DEFAULT_MIN_PLAYS = 3;
 
 const data = localize(
   new SlashCommandBuilder(),
@@ -20,6 +22,19 @@ const data = localize(
   .setContexts(InteractionContextType.Guild)
   .addIntegerOption((o) =>
     localize(o, lt('game', 'Only this game', 'jeu', 'Seulement ce jeu')).setAutocomplete(true),
+  )
+  .addIntegerOption((o) =>
+    localize(
+      o,
+      lt(
+        'min_plays',
+        `Plays needed to be ranked (default ${DEFAULT_MIN_PLAYS})`,
+        'parties_min',
+        `Parties nécessaires pour être classé (${DEFAULT_MIN_PLAYS} par défaut)`,
+      ),
+    )
+      .setMinValue(1)
+      .setMaxValue(100),
   );
 
 export const leaderboard: Command = {
@@ -27,16 +42,24 @@ export const leaderboard: Command = {
 
   async execute(interaction, { db }) {
     const m = t(interaction.locale);
+    const reply = (content: string) =>
+      interaction.reply({ content, flags: MessageFlags.Ephemeral });
     const gameId = interaction.options.getInteger('game') ?? undefined;
     const game = gameId === undefined ? undefined : getGame(db, interaction.guildId, gameId);
     if (gameId !== undefined && !game) {
-      await interaction.reply({ content: m.common.gameNotFound, flags: MessageFlags.Ephemeral });
+      await reply(m.common.gameNotFound);
       return;
     }
 
-    const ranking = standings(playHistory(db, interaction.guildId), gameId);
+    const all = standings(playHistory(db, interaction.guildId), gameId);
+    if (all.length === 0) {
+      await reply(m.leaderboard.empty);
+      return;
+    }
+    const minPlays = interaction.options.getInteger('min_plays') ?? DEFAULT_MIN_PLAYS;
+    const ranking = all.filter((s) => s.plays >= minPlays);
     if (ranking.length === 0) {
-      await interaction.reply({ content: m.leaderboard.empty, flags: MessageFlags.Ephemeral });
+      await reply(m.leaderboard.notEnough(minPlays));
       return;
     }
     const medals = ['🥇', '🥈', '🥉'];
@@ -49,6 +72,8 @@ export const leaderboard: Command = {
       .setColor(0xeb459e)
       .setTitle(game ? m.leaderboard.titleGame(game.title) : m.leaderboard.titleOverall)
       .setDescription(lines.join('\n'));
+    const hidden = all.length - ranking.length;
+    if (hidden > 0) embed.setFooter({ text: m.leaderboard.hidden(hidden, minPlays) });
     await interaction.reply({ embeds: [embed], allowedMentions: { users: [] } });
   },
 
