@@ -45,9 +45,10 @@ export async function checkReminders(ctx: BotContext, now = new Date()): Promise
 /** Checks every minute for game nights that need a reminder. Returns a stop function. */
 export function startReminderLoop(ctx: BotContext): () => void {
   const tick = () => {
+    // Before login or while reconnecting, channels can't be fetched: wait for the next tick.
+    if (!ctx.client.isReady()) return;
     checkReminders(ctx).catch((error) => log.error('Reminder check failed', { error }));
   };
-  tick();
   const timer = setInterval(tick, CHECK_INTERVAL_MS);
   return () => clearInterval(timer);
 }
