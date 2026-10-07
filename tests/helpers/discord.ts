@@ -12,7 +12,7 @@ export function fakeChannel(locale = 'fr') {
   return {
     sent,
     channel: {
-      guild: { preferredLocale: locale },
+      guild: { id: 'g', preferredLocale: locale },
       isSendable: () => true,
       isDMBased: () => false,
       isTextBased: () => true,

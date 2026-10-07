@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { createDb } from '../../src/db/client.js';
 import { parseMyLudoExport } from '../../src/domain/myludo.js';
 import { importGames, listGames } from '../../src/repositories/games.js';
-import { getSettings, purgeGuild, updateSettings } from '../../src/repositories/guilds.js';
+import {
+  getSettings,
+  purgeGuild,
+  serverLocale,
+  updateSettings,
+} from '../../src/repositories/guilds.js';
 import { createNight, setRsvp } from '../../src/repositories/nights.js';
 import { playHistory, recordPlay } from '../../src/repositories/plays.js';
 import { createPoll, setVotes } from '../../src/repositories/polls.js';
@@ -18,6 +23,7 @@ describe('guild settings', () => {
       organizerRoleId: null,
       reminderEarlyHours: 24,
       reminderLateHours: 2,
+      locale: null,
     });
 
     updateSettings(db, 'g', { timezone: 'America/Montreal' });
@@ -27,8 +33,18 @@ describe('guild settings', () => {
       organizerRoleId: 'r1',
       reminderEarlyHours: 48,
       reminderLateHours: 2,
+      locale: null,
     });
     expect(getSettings(db, 'other', 'UTC').timezone).toBe('UTC');
+  });
+
+  it('prefers the server language setting over the Discord one', () => {
+    const db = createDb(':memory:');
+    expect(serverLocale(db, 'g', 'en-US')).toBe('en-US');
+    updateSettings(db, 'g', { locale: 'fr' });
+    expect(serverLocale(db, 'g', 'en-US')).toBe('fr');
+    updateSettings(db, 'g', { locale: null });
+    expect(serverLocale(db, 'g', 'en-US')).toBe('en-US');
   });
 });
 
