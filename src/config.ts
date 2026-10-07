@@ -12,6 +12,17 @@ export interface Config {
   backupKeep: number;
   /** Port of the /health endpoint; null disables it. */
   healthPort: number | null;
+  /** Direct message reminding to renew a free hosting plan; null disables it. */
+  renewal: RenewalConfig | null;
+}
+
+export interface RenewalConfig {
+  userId: string;
+  /** Days a renewal lasts. */
+  days: number;
+  /** Hosting panel opened by the reminder's link button. */
+  url: string | null;
+  locale: string;
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
@@ -28,6 +39,22 @@ function integer(env: NodeJS.ProcessEnv, name: string, fallback: number): number
     throw new Error(`Invalid ${name} "${raw}" (expected a positive integer)`);
   }
   return value;
+}
+
+function renewal(env: NodeJS.ProcessEnv): RenewalConfig | null {
+  const userId = env.RENEWAL_USER_ID?.trim();
+  if (!userId) return null;
+  if (!/^\d{17,20}$/.test(userId)) {
+    throw new Error(`Invalid RENEWAL_USER_ID "${userId}" (expected a Discord user id)`);
+  }
+  // The first reminder comes a day before the deadline: shorter plans would be nagged at once.
+  const days = integer(env, 'RENEWAL_DAYS', 4);
+  if (days < 2) throw new Error(`Invalid RENEWAL_DAYS "${days}" (expected at least 2)`);
+  const url = env.RENEWAL_URL?.trim() || null;
+  if (url && !/^https?:\/\//.test(url)) {
+    throw new Error(`Invalid RENEWAL_URL "${url}" (expected an http(s) link)`);
+  }
+  return { userId, days, url, locale: env.RENEWAL_LOCALE?.trim() || 'en' };
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -50,5 +77,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
         : env.BACKUP_DIR?.trim() || join(dirname(databasePath), 'backups'),
     backupKeep,
     healthPort: healthPort || null,
+    renewal: renewal(env),
   };
 }

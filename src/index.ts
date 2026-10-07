@@ -10,6 +10,7 @@ import { createDb } from './db/client.js';
 import { startHealthServer, startWatchdog } from './health.js';
 import { log } from './log.js';
 import { dropPrivileges } from './privileges.js';
+import { confirmRenewal, isRenewalButton, startRenewalReminder } from './renewal.js';
 import { purgeGuild } from './repositories/guilds.js';
 import { startScheduler } from './scheduler/index.js';
 
@@ -27,7 +28,15 @@ client.on(Events.Error, (error) => log.error('Client error', { error }));
 client.on(Events.Warn, (message) => log.warn('Client warning', { message }));
 process.on('unhandledRejection', (error) => log.error('Unhandled rejection', { error }));
 
-client.on(Events.InteractionCreate, createRouter(commands, componentHandlers, ctx, modalHandlers));
+const route = createRouter(commands, componentHandlers, ctx, modalHandlers);
+const renewal = config.renewal;
+client.on(Events.InteractionCreate, (interaction) =>
+  renewal && isRenewalButton(interaction)
+    ? confirmRenewal(interaction, ctx, renewal).catch((error) =>
+        log.error('Renewal confirmation failed', { error }),
+      )
+    : route(interaction),
+);
 
 // Fired when the bot is kicked or the server is deleted (outages emit GuildUnavailable instead).
 client.on(Events.GuildDelete, (guild) => {
@@ -39,6 +48,7 @@ const stopScheduler = startScheduler(ctx);
 const stopBackups = config.backupDir
   ? startBackups(db, config.backupDir, config.backupKeep)
   : () => undefined;
+const stopRenewal = renewal ? startRenewalReminder(ctx, renewal) : () => undefined;
 const health = config.healthPort ? startHealthServer(client, config.healthPort) : null;
 const stopWatchdog = startWatchdog(client);
 
@@ -54,6 +64,7 @@ const shutdown = async (signal: string) => {
   log.info('Shutting down', { signal });
   stopScheduler();
   stopBackups();
+  stopRenewal();
   stopWatchdog();
   health?.close();
   await client.destroy();
