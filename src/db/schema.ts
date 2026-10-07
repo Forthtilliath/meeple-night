@@ -29,6 +29,8 @@ export const games = sqliteTable(
     categories: text('categories', { mode: 'json' }).$type<string[]>().notNull().default([]),
     mechanics: text('mechanics', { mode: 'json' }).$type<string[]>().notNull().default([]),
     rating: real('rating'),
+    /** Removed from the collection, but kept so that its plays and ratings remain. */
+    archived: integer('archived', { mode: 'boolean' }).notNull().default(false),
     createdAt: createdAt(),
   },
   (t) => [
@@ -54,6 +56,13 @@ export const gameNights = sqliteTable(
       .default('scheduled'),
     reminderDaySent: integer('reminder_day_sent', { mode: 'boolean' }).notNull().default(false),
     reminderHoursSent: integer('reminder_hours_sent', { mode: 'boolean' }).notNull().default(false),
+    /** Game chosen for the night, usually by a vote. */
+    gameId: integer('game_id').references(() => games.id, { onDelete: 'set null' }),
+    /** Matching Discord scheduled event, when the bot may create events. */
+    scheduledEventId: text('scheduled_event_id'),
+    recurrence: text('recurrence', { enum: ['weekly', 'biweekly'] }),
+    /** Set once the night has started: message closed and next occurrence planned. */
+    startHandled: integer('start_handled', { mode: 'boolean' }).notNull().default(false),
     createdAt: createdAt(),
   },
   (t) => [index('game_nights_guild_starts_idx').on(t.guildId, t.startsAt)],
@@ -84,6 +93,12 @@ export const polls = sqliteTable('polls', {
   status: text('status', { enum: ['open', 'closed'] })
     .notNull()
     .default('open'),
+  /** Automatic closing time, if any. */
+  closesAt: integer('closes_at', { mode: 'timestamp_ms' }),
+  /** Only the confirmed attendees of the linked night may vote. */
+  attendeesOnly: integer('attendees_only', { mode: 'boolean' }).notNull().default(false),
+  /** Set on closing; ties are broken at random. */
+  winnerGameId: integer('winner_game_id').references(() => games.id, { onDelete: 'set null' }),
   createdAt: createdAt(),
 });
 
@@ -125,6 +140,7 @@ export const plays = sqliteTable(
       .references(() => games.id, { onDelete: 'cascade' }),
     playedAt: integer('played_at', { mode: 'timestamp_ms' }).notNull(),
     recordedBy: text('recorded_by').notNull(),
+    nightId: integer('night_id').references(() => gameNights.id, { onDelete: 'set null' }),
   },
   (t) => [index('plays_guild_played_idx').on(t.guildId, t.playedAt)],
 );
@@ -143,9 +159,22 @@ export const playPlayers = sqliteTable(
   (t) => [primaryKey({ columns: [t.playId, t.userId] })],
 );
 
+/** Per-server preferences; a missing row means every default applies. */
+export const guildSettings = sqliteTable('guild_settings', {
+  guildId: text('guild_id').primaryKey(),
+  /** IANA timezone used to read dates typed in commands; null = the bot's default. */
+  timezone: text('timezone'),
+  /** Members with this role can manage nights, votes and the collection. */
+  organizerRoleId: text('organizer_role_id'),
+  reminderEarlyHours: integer('reminder_early_hours').notNull().default(24),
+  reminderLateHours: integer('reminder_late_hours').notNull().default(2),
+});
+
 export type Game = typeof games.$inferSelect;
 export type NewGame = typeof games.$inferInsert;
 export type GameNight = typeof gameNights.$inferSelect;
 export type Rsvp = typeof rsvps.$inferSelect;
 export type RsvpStatus = Rsvp['status'];
 export type Poll = typeof polls.$inferSelect;
+export type Recurrence = NonNullable<GameNight['recurrence']>;
+export type GuildSettingsRow = typeof guildSettings.$inferSelect;

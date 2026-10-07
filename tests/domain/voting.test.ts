@@ -17,6 +17,7 @@ function game(id: number, overrides: Partial<Game> = {}): Game {
     categories: [],
     mechanics: [],
     rating: null,
+    archived: false,
     createdAt: new Date(0),
     ...overrides,
   };
