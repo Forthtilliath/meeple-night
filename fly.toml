@@ -1,6 +1,6 @@
 # Discord bots keep a gateway connection open: no HTTP service, the machine runs continuously.
 # Deploy a single machine only (SQLite file + one gateway session): `fly deploy --ha=false`.
-app = "discord-gameboard-planner"
+app = "meeple-night"
 primary_region = "cdg"
 
 [build]

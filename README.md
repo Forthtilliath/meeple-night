@@ -1,6 +1,6 @@
-# Board Game Night Bot
+# Meeple Night
 
-A Discord bot for board game groups: organize game nights with RSVP and reminders, vote on which game to play, import the group's collection from [MyLudo](https://www.myludo.fr), track plays and rank players with a multiplayer Elo rating.
+**Meeple Night** is a Discord bot for board game groups: organize game nights with RSVP and reminders, vote on which game to play, import the group's collection from [MyLudo](https://www.myludo.fr), track plays and rank players with a multiplayer Elo rating.
 
 Bilingual: every command, option and message is available in **English** and **French**, following each user's Discord language.
 
