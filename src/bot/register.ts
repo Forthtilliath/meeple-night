@@ -1,5 +1,6 @@
 import { REST, Routes } from 'discord.js';
 import type { Config } from '../config.js';
+import { log } from '../log.js';
 import type { Command } from './types.js';
 
 /**
@@ -13,7 +14,8 @@ export async function registerCommands(config: Config, commands: Command[]): Pro
     ? Routes.applicationGuildCommands(config.clientId, config.guildId)
     : Routes.applicationCommands(config.clientId);
   await rest.put(route, { body });
-  console.log(
-    `Registered ${body.length} commands ${config.guildId ? 'on the dev guild' : 'globally'}`,
-  );
+  log.info('Commands registered', {
+    count: body.length,
+    scope: config.guildId ? 'guild' : 'global',
+  });
 }

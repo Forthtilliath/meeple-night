@@ -7,6 +7,7 @@ import {
   dueReminders,
 } from '../domain/reminders.js';
 import { t } from '../i18n/index.js';
+import { log } from '../log.js';
 import { getRsvps, markReminderSent, nightsStartingBefore } from '../repositories/nights.js';
 
 const CHECK_INTERVAL_MS = 60_000;
@@ -36,7 +37,7 @@ export async function checkReminders(ctx: BotContext, now = new Date()): Promise
   const nights = nightsStartingBefore(ctx.db, now, new Date(now.getTime() + DAY_REMINDER_MS));
   for (const reminder of dueReminders(nights, now)) {
     await sendReminder(ctx, reminder).catch((error) =>
-      console.error(`Reminder for night #${reminder.night.id} failed`, error),
+      log.error('Reminder failed', { nightId: reminder.night.id, error }),
     );
   }
 }
@@ -44,7 +45,7 @@ export async function checkReminders(ctx: BotContext, now = new Date()): Promise
 /** Checks every minute for game nights that need a reminder. Returns a stop function. */
 export function startReminderLoop(ctx: BotContext): () => void {
   const tick = () => {
-    checkReminders(ctx).catch((error) => console.error('Reminder check failed', error));
+    checkReminders(ctx).catch((error) => log.error('Reminder check failed', { error }));
   };
   tick();
   const timer = setInterval(tick, CHECK_INTERVAL_MS);
