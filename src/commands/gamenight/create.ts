@@ -54,7 +54,7 @@ export async function createNightCommand(
     recurrence: interaction.options.getString('repeat') as Recurrence | null,
   });
   const response = await interaction.reply({
-    ...renderNight(db, night, interaction.guildLocale),
+    ...renderNight(db, night, settings.locale ?? interaction.guildLocale),
     withResponse: true,
   });
   const messageId = response.resource?.message?.id ?? null;

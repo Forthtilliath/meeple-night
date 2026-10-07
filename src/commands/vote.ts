@@ -104,7 +104,7 @@ export const vote: Command = {
       await reply(m.vote.needNight);
       return;
     }
-    const { organizerRoleId } = getSettings(db, interaction.guildId, timezone);
+    const { organizerRoleId, locale } = getSettings(db, interaction.guildId, timezone);
     if (
       !isManager(interaction, organizerRoleId) &&
       countOpenPollsBy(db, interaction.guildId, interaction.user.id) >= MAX_OPEN_POLLS_PER_MEMBER
@@ -146,7 +146,7 @@ export const vote: Command = {
       attendeesOnly,
     });
     const response = await interaction.reply({
-      ...renderPoll(db, poll, interaction.guildLocale),
+      ...renderPoll(db, poll, locale ?? interaction.guildLocale),
       withResponse: true,
     });
     const messageId = response.resource?.message?.id;

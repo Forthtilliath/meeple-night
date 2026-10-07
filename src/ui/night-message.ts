@@ -15,6 +15,7 @@ import { attendance } from '../domain/reminders.js';
 import { t } from '../i18n/index.js';
 import { log } from '../log.js';
 import { getGame } from '../repositories/games.js';
+import { serverLocale } from '../repositories/guilds.js';
 import { getRsvps } from '../repositories/nights.js';
 import { plain } from './text.js';
 
@@ -103,8 +104,9 @@ export async function refreshNightMessage(client: Client, db: Db, night: GameNig
   if (!night.messageId) return;
   const channel = await client.channels.fetch(night.channelId).catch(() => null);
   if (!channel?.isTextBased() || channel.isDMBased()) return;
+  const locale = serverLocale(db, night.guildId, channel.guild.preferredLocale);
   await channel.messages
-    .edit(night.messageId, renderNight(db, night, channel.guild.preferredLocale))
+    .edit(night.messageId, renderNight(db, night, locale))
     .catch((error) => log.warn('Night message not refreshed', { nightId: night.id, error }));
 }
 
@@ -116,18 +118,20 @@ export async function postNightMessage(
 ): Promise<string | null> {
   const channel = await client.channels.fetch(night.channelId).catch(() => null);
   if (!channel?.isSendable() || channel.isDMBased()) return null;
-  const message = await channel.send(renderNight(db, night, channel.guild.preferredLocale));
+  const locale = serverLocale(db, night.guildId, channel.guild.preferredLocale);
+  const message = await channel.send(renderNight(db, night, locale));
   return message.id;
 }
 
 /** Announces something about a night in its channel; failures are logged, never thrown. */
 export async function notifyNight(
   client: Client,
+  db: Db,
   night: GameNight,
   compose: (locale: string) => string,
   userIds: string[],
 ): Promise<void> {
-  await postInChannel(client, night.channelId, compose, userIds).catch((error) =>
+  await postInChannel(client, db, night.channelId, compose, userIds).catch((error) =>
     log.warn('Night notice not sent', { nightId: night.id, error }),
   );
 }

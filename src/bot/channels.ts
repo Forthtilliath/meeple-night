@@ -1,4 +1,6 @@
 import type { Client } from 'discord.js';
+import type { Db } from '../db/client.js';
+import { serverLocale } from '../repositories/guilds.js';
 import { isPermanentError } from './discord-errors.js';
 
 /**
@@ -8,6 +10,7 @@ import { isPermanentError } from './discord-errors.js';
  */
 export async function postInChannel(
   client: Client,
+  db: Db,
   channelId: string,
   compose: (locale: string) => string,
   pinged: string[] = [],
@@ -16,8 +19,9 @@ export async function postInChannel(
     const channel = await client.channels.fetch(channelId);
     if (!channel?.isSendable() || channel.isDMBased()) return false;
     const mentions = pinged.length > 0 ? `\n${pinged.map((id) => `<@${id}>`).join(' ')}` : '';
+    const locale = serverLocale(db, channel.guild.id, channel.guild.preferredLocale);
     await channel.send({
-      content: `${compose(channel.guild.preferredLocale)}${mentions}`,
+      content: `${compose(locale)}${mentions}`,
       allowedMentions: { users: pinged },
     });
     return true;

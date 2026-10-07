@@ -3,6 +3,7 @@ import type { ComponentHandler } from '../bot/types.js';
 import type { RsvpStatus } from '../db/schema.js';
 import { attendance, promotedUsers } from '../domain/reminders.js';
 import { t } from '../i18n/index.js';
+import { serverLocale } from '../repositories/guilds.js';
 import { getNight, getRsvps, setRsvp } from '../repositories/nights.js';
 import { isOpen, notifyNight, RSVP_PREFIX, renderNight } from '../ui/night-message.js';
 import { plain } from '../ui/text.js';
@@ -23,7 +24,8 @@ export const rsvpHandler: ComponentHandler = {
     const before = attendance(getRsvps(db, night.id), night.maxPlayers);
     setRsvp(db, night.id, interaction.user.id, answer);
     const after = attendance(getRsvps(db, night.id), night.maxPlayers);
-    await interaction.update(renderNight(db, night, interaction.guildLocale));
+    const locale = serverLocale(db, night.guildId, interaction.guildLocale);
+    await interaction.update(renderNight(db, night, locale));
 
     const waitlisted = answer === 'yes' && after.waitlist.includes(interaction.user.id);
     await interaction.followUp({
@@ -36,6 +38,7 @@ export const rsvpHandler: ComponentHandler = {
     if (promoted.length > 0) {
       await notifyNight(
         client,
+        db,
         night,
         (locale) => t(locale).night.noticePromoted(plain(night.title)),
         promoted,
