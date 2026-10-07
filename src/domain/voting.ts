@@ -58,3 +58,9 @@ export function winners(results: TallyEntry[]): number[] {
   if (best === 0) return [];
   return results.filter((r) => r.votes === best).map((r) => r.gameId);
 }
+
+/** The single winner of a vote: ties are broken at random. Null when nobody voted. */
+export function pickWinner(results: TallyEntry[], random: () => number = Math.random) {
+  const tied = winners(results);
+  return tied[Math.floor(random() * tied.length)] ?? null;
+}

@@ -101,6 +101,14 @@ export const fr: Messages = {
     closedTitle: 'Vote clos',
     winner: (titles) => `🏆 On joue à **${titles}** !`,
     noVotes: "Personne n'a voté.",
+    tieBreak: (tied, winner) =>
+      `🎲 Égalité entre ${tied} : le tirage au sort désigne **${winner}** !`,
+    closesAt: (when) => `Clôture ${when}.`,
+    attendeesOnly: 'Seuls les inscrits confirmés de la soirée peuvent voter.',
+    notAttendee: 'Seuls les inscrits confirmés de cette soirée peuvent voter.',
+    needNight: 'Choisis une soirée pour réserver le vote à ses inscrits.',
+    tooMany: (max) => `Tu as déjà ${max} votes ouverts : clos-en un d'abord.`,
+    autoClosed: (result, url) => `🗳️ Vote clos. ${result}\n${url}`,
   },
   play: {
     needTwoPlayers: 'Une partie demande au moins 2 joueurs.',

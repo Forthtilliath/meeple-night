@@ -97,6 +97,14 @@ export const en = {
     closedTitle: 'Vote closed',
     winner: (titles: string) => `🏆 Let's play **${titles}**!`,
     noVotes: 'Nobody voted.',
+    tieBreak: (tied: string, winner: string) =>
+      `🎲 Tie between ${tied}: the draw picked **${winner}**!`,
+    closesAt: (when: string) => `Closes ${when}.`,
+    attendeesOnly: 'Only the confirmed attendees of the night can vote.',
+    notAttendee: 'Only the confirmed attendees of this night can vote.',
+    needNight: 'Pick a night to restrict the vote to its attendees.',
+    tooMany: (max: number) => `You already have ${max} open votes: close one first.`,
+    autoClosed: (result: string, url: string) => `🗳️ Vote closed. ${result}\n${url}`,
   },
   play: {
     needTwoPlayers: 'A play needs at least 2 players.',

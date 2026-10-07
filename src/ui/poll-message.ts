@@ -9,8 +9,9 @@ import {
 import { customId, type RenderedMessage } from '../bot/types.js';
 import type { Db } from '../db/client.js';
 import type { Poll } from '../db/schema.js';
-import { tally, winners } from '../domain/voting.js';
-import { t } from '../i18n/index.js';
+import { discordTimestamp } from '../domain/dates.js';
+import { type TallyEntry, tally, winners } from '../domain/voting.js';
+import { type Messages, t } from '../i18n/index.js';
 import { getPollGames, getVotes } from '../repositories/polls.js';
 import { plain } from './text.js';
 
@@ -22,6 +23,36 @@ const LABEL_LIMIT = 100;
 
 const clip = (text: string) =>
   text.length > LABEL_LIMIT ? `${text.slice(0, LABEL_LIMIT - 1)}…` : text;
+
+/** "Let's play X!", with the tie-break draw if any. */
+export function resultLine(
+  m: Messages,
+  results: TallyEntry[],
+  titleOf: Map<number, string>,
+  winnerGameId: number | null,
+): string {
+  const best = winners(results);
+  const winner = winnerGameId ? titleOf.get(winnerGameId) : undefined;
+  // Polls closed before tie-breaks existed have no stored winner: list the tie.
+  if (!winner) {
+    return best.length > 0
+      ? m.vote.winner(best.map((id) => titleOf.get(id)).join(' / '))
+      : m.vote.noVotes;
+  }
+  if (best.length < 2) return m.vote.winner(winner);
+  return m.vote.tieBreak(best.map((id) => titleOf.get(id)).join(' / '), winner);
+}
+
+/** Result line of a closed poll, computed from the database. */
+export function pollResultText(db: Db, poll: Poll, locale: string): string {
+  const games = getPollGames(db, poll.id);
+  const results = tally(
+    games.map((g) => g.id),
+    getVotes(db, poll.id),
+  );
+  const titleOf = new Map(games.map((g) => [g.id, plain(g.title)]));
+  return resultLine(t(locale), results, titleOf, poll.winnerGameId);
+}
 
 /** Builds the poll message: live tally, then the winner once closed. */
 export function renderPoll(db: Db, poll: Poll, locale: string): RenderedMessage {
@@ -38,20 +69,21 @@ export function renderPoll(db: Db, poll: Poll, locale: string): RenderedMessage 
   const lines = results.map(
     ({ gameId, votes: count }) => `**${titleOf.get(gameId)}** — ${m.vote.voteCount(count)}`,
   );
+  const intro = open
+    ? [
+        m.vote.description(poll.players),
+        poll.attendeesOnly ? m.vote.attendeesOnly : '',
+        poll.closesAt ? m.vote.closesAt(discordTimestamp(poll.closesAt, 'R')) : '',
+      ]
+    : [];
   const embed = new EmbedBuilder()
     .setTitle(open ? m.vote.title : m.vote.closedTitle)
     .setColor(open ? COLOR_OPEN : COLOR_CLOSED)
-    .setDescription(
-      [open ? m.vote.description(poll.players) : '', ...lines].filter(Boolean).join('\n'),
-    )
+    .setDescription([...intro, ...lines].filter(Boolean).join('\n'))
     .setFooter({ text: m.vote.voters(new Set(votes.map((v) => v.userId)).size) });
 
   if (!open) {
-    const best = winners(results).map((id) => titleOf.get(id));
-    embed.addFields({
-      name: '​',
-      value: best.length > 0 ? m.vote.winner(best.join(' / ')) : m.vote.noVotes,
-    });
+    embed.addFields({ name: '​', value: resultLine(m, results, titleOf, poll.winnerGameId) });
     return { embeds: [embed], components: [] };
   }
 

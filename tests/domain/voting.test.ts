@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { Game } from '../../src/db/schema.js';
-import { fitsFilter, pickCandidates, tally, winners } from '../../src/domain/voting.js';
+import { fitsFilter, pickCandidates, pickWinner, tally, winners } from '../../src/domain/voting.js';
+
+describe('pickWinner', () => {
+  it('breaks ties at random and returns null without votes', () => {
+    const tied = [
+      { gameId: 1, votes: 2 },
+      { gameId: 2, votes: 2 },
+      { gameId: 3, votes: 1 },
+    ];
+    expect(pickWinner(tied, () => 0)).toBe(1);
+    expect(pickWinner(tied, () => 0.99)).toBe(2);
+    expect(pickWinner([{ gameId: 1, votes: 0 }])).toBeNull();
+  });
+});
 
 function game(id: number, overrides: Partial<Game> = {}): Game {
   return {
