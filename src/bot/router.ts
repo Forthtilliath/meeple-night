@@ -1,16 +1,18 @@
 import { type Interaction, type InteractionReplyOptions, MessageFlags } from 'discord.js';
 import { t } from '../i18n/index.js';
 import { log } from '../log.js';
-import type { BotContext, Command, ComponentHandler } from './types.js';
+import type { BotContext, Command, ComponentHandler, ModalHandler } from './types.js';
 
 /** Dispatches slash commands, autocompletes and components, and reports errors to the user. */
 export function createRouter(
   commands: Command[],
   handlers: ComponentHandler[],
   ctx: BotContext,
+  modals: ModalHandler[] = [],
 ): (interaction: Interaction) => Promise<void> {
   const byName = new Map(commands.map((c) => [c.data.name, c]));
   const byPrefix = new Map(handlers.map((h) => [h.prefix, h]));
+  const modalByPrefix = new Map(modals.map((h) => [h.prefix, h]));
 
   return async (interaction) => {
     if (!interaction.inCachedGuild()) {
@@ -31,6 +33,9 @@ export function createRouter(
       } else if (interaction.isMessageComponent()) {
         const [prefix = '', ...args] = interaction.customId.split(':');
         await byPrefix.get(prefix)?.handle(interaction, args, ctx);
+      } else if (interaction.isModalSubmit()) {
+        const [prefix = '', ...args] = interaction.customId.split(':');
+        await modalByPrefix.get(prefix)?.handle(interaction, args, ctx);
       }
     } catch (error) {
       log.error('Interaction failed', {

@@ -75,6 +75,6 @@ export function isValidTimezone(timeZone: string): boolean {
 }
 
 /** Discord timestamp markup, rendered in each viewer's own locale and timezone. */
-export function discordTimestamp(date: Date, style: 'F' | 'R' | 'f' | 't' = 'F'): string {
+export function discordTimestamp(date: Date, style: 'F' | 'R' | 'f' | 't' | 'd' = 'F'): string {
   return `<t:${Math.floor(date.getTime() / 1000)}:${style}>`;
 }

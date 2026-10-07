@@ -112,6 +112,22 @@ export const en = {
     scoresMismatch: (players: number) =>
       `Give exactly ${players} scores separated by commas, in the same order as the players.`,
     recorded: (game: string) => `Play of **${game}** recorded!`,
+    footer: (id: number) => `Play #${id} · a mistake? /play undo`,
+    notInPlay: 'You can only record a play you took part in, unless you are an organizer.',
+    notFound: 'Play not found.',
+    undone: (id: number) => `Play #${id} deleted: the rankings are recalculated.`,
+    historyTitle: 'Latest plays',
+    historyEmpty: 'No play matches.',
+    historyLine: (id: number, when: string, game: string, ranking: string) =>
+      `\`#${id}\` ${when} · **${game}** — ${ranking}`,
+    noAttendees: 'Not enough confirmed attendees for this night (2 needed).',
+    noGame: 'Pick the game that was played: no vote chose one for this night.',
+    modalTitle: 'Results of the night',
+    modalLabel: 'Finishing order, winner first',
+    modalHint: 'One player per line. Remove those who did not play. Optional: "Name : score".',
+    unknownPlayer: (name: string) => `"${name}" is not a confirmed attendee of the night.`,
+    duplicateLine: (name: string) => `"${name}" appears twice.`,
+    partialScores: 'Give a score to every player, or to none.',
     ratingLine: (rank: number, user: string, rating: number, delta: number) =>
       `${rank}. ${user} — ${Math.round(rating)} (${delta >= 0 ? '+' : ''}${Math.round(delta)})`,
   },
@@ -119,6 +135,10 @@ export const en = {
     titleOverall: 'Elo ranking — all games',
     titleGame: (game: string) => `Elo ranking — ${game}`,
     empty: 'No play recorded yet. Use `/play record` after a game!',
+    notEnough: (min: number) =>
+      `Nobody has ${min} plays yet. Try \`min_plays: 1\` to see provisional ratings.`,
+    hidden: (count: number, min: number) =>
+      `${count} player${count > 1 ? 's' : ''} with fewer than ${min} plays not shown`,
     line: (position: number, user: string, rating: number, plays: number) =>
       `**${position}.** ${user} — ${Math.round(rating)} (${plays} play${plays > 1 ? 's' : ''})`,
   },
