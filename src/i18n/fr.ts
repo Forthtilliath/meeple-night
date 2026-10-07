@@ -99,4 +99,15 @@ export const fr: Messages = {
     line: (position, user, rating, plays) =>
       `**${position}.** ${user} — ${Math.round(rating)} (${plays} ${plural(plays, 'partie')})`,
   },
+  settings: {
+    title: 'Réglages du serveur',
+    timezone: 'Fuseau horaire',
+    organizerRole: 'Rôle organisateur',
+    noRole: 'Aucun : seuls les membres avec *Gérer le serveur*',
+    reminders: 'Rappels',
+    reminderHours: (early, late) => `${early} h et ${late} h avant la soirée`,
+    invalidTimezone: 'Fuseau inconnu. Choisis-en un dans la liste, ex. `Europe/Paris`.',
+    invalidReminders: 'Le second rappel doit être plus proche de la soirée que le premier.',
+    saved: 'Réglages enregistrés.',
+  },
 };

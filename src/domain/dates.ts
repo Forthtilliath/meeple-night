@@ -50,6 +50,15 @@ export function parseLocalDateTime(date: string, time: string, timeZone: string)
   return new Date(result);
 }
 
+export function isValidTimezone(timeZone: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Discord timestamp markup, rendered in each viewer's own locale and timezone. */
 export function discordTimestamp(date: Date, style: 'F' | 'R' | 'f' | 't' = 'F'): string {
   return `<t:${Math.floor(date.getTime() / 1000)}:${style}>`;

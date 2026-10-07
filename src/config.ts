@@ -1,3 +1,5 @@
+import { isValidTimezone } from './domain/dates.js';
+
 export interface Config {
   token: string;
   clientId: string;
@@ -14,9 +16,7 @@ function required(env: NodeJS.ProcessEnv, name: string): string {
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const timezone = env.TIMEZONE?.trim() || 'Europe/Paris';
-  try {
-    new Intl.DateTimeFormat('en', { timeZone: timezone });
-  } catch {
+  if (!isValidTimezone(timezone)) {
     throw new Error(`Invalid TIMEZONE "${timezone}" (expected an IANA name like Europe/Paris)`);
   }
   return {

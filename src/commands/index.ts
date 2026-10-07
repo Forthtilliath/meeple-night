@@ -6,8 +6,9 @@ import { gamenight } from './gamenight.js';
 import { leaderboard } from './leaderboard.js';
 import { ping } from './ping.js';
 import { play } from './play.js';
+import { settings } from './settings.js';
 import { vote } from './vote.js';
 
-export const commands: Command[] = [ping, gamenight, collection, vote, play, leaderboard];
+export const commands: Command[] = [ping, gamenight, collection, vote, play, leaderboard, settings];
 
 export const componentHandlers: ComponentHandler[] = [rsvpHandler, pollHandler];

@@ -1,6 +1,7 @@
 import type { AutocompleteInteraction } from 'discord.js';
 import type { BotContext } from '../bot/types.js';
 import { searchGames } from '../repositories/games.js';
+import { getSettings } from '../repositories/guilds.js';
 import { upcomingNights } from '../repositories/nights.js';
 
 const MAX_CHOICE_LENGTH = 100;
@@ -25,7 +26,7 @@ export async function autocompleteNight(
 ): Promise<void> {
   const query = interaction.options.getFocused().toLowerCase();
   const format = new Intl.DateTimeFormat(interaction.locale, {
-    timeZone: timezone,
+    timeZone: getSettings(db, interaction.guildId, timezone).timezone,
     dateStyle: 'medium',
     timeStyle: 'short',
   });
