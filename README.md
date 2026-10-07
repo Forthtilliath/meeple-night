@@ -48,6 +48,8 @@ src/
 └── log.ts         JSON logs
 ```
 
+Outside `src/`: `drizzle/` holds the SQL migrations, [`index.js`](index.js) and [`scripts/pack-panel.mjs`](scripts/pack-panel.mjs) serve the [panel deployment](#panel-host-katabump), and the `Dockerfile` and `fly.toml` the [Docker one](#docker-alternative).
+
 Design choices:
 
 - **Ratings are derived, not stored.** The Elo ranking is recomputed by replaying the play history in order. It stays consistent if a play is ever corrected or removed, and it is cheap at the scale of a group of friends.
@@ -103,7 +105,7 @@ Requirements: Node.js 24+.
 | `TIMEZONE` | `Europe/Paris` | Default timezone, overridable per server |
 | `BACKUP_DIR` / `BACKUP_KEEP` | `<db folder>/backups` / `7` | Daily database copies; `BACKUP_KEEP=0` disables them |
 | `HEALTH_PORT` | disabled | Serves `GET /health` (200 when connected to Discord, 503 otherwise) |
-| `RENEWAL_USER_ID` | disabled | Discord user who gets the [renewal reminder](#renewal-reminder) by direct message |
+| `RENEWAL_USER_ID` | disabled | Discord user who gets the [renewal reminder](#panel-host-katabump) by direct message |
 | `RENEWAL_DAYS` / `RENEWAL_URL` / `RENEWAL_LOCALE` | `4` / — / `en` | Days a renewal lasts, link to the hosting panel, language of the reminder (`en` or `fr`) |
 
 ### Scripts
@@ -114,11 +116,30 @@ Requirements: Node.js 24+.
 | `npm test` | Unit and integration tests (Vitest) |
 | `npm run check` | Lint, typecheck, tests and build, as in CI |
 | `npm run db:generate` | Generate a migration after a schema change |
-| `npm run pack:panel` | Archive ready to upload to a [panel host](#deployment-panel-host-katabump-pterodactyl) |
+| `npm run pack:panel` | Archive ready to upload to the [panel host](#panel-host-katabump) |
 
-## Deployment (Fly.io)
+## Deployment
 
-The bot runs as a single always-on machine with a volume for the SQLite file.
+The bot is a single long-running process: it keeps a gateway connection to Discord open and serves no public HTTP. Run **one instance only**: two would answer every command twice and write to separate databases.
+
+### Panel host (KataBump)
+
+The bot is hosted on [KataBump](https://katabump.com)'s free plan. Like most free bot hosts, it is a Pterodactyl panel that runs `node index.js` and offers no way to set environment variables. The root [`index.js`](index.js) handles both: it loads the `.env` file next to it, then starts the compiled bot.
+
+1. Create a Node.js server and pick the **Node.js 24** image in *Startup*; keep the JS file on `index.js`.
+2. Run `npm run pack:panel`. It builds `meeple-night-panel.tar.gz` with `index.js`, `dist/`, `drizzle/` and the production dependencies, including the Linux x64 binary of better-sqlite3, even when packing from Windows or macOS.
+3. Upload the archive in the *Files* tab, unarchive it, and create a `.env` file next to it with at least `DISCORD_TOKEN` and `DISCORD_CLIENT_ID` (see [`.env.example`](.env.example)).
+4. Start the server: migrations run at startup, and the logs show up in the *Console* tab.
+
+**Updating**: run `npm run pack:panel` again, unarchive over the previous files and restart. `.env` and `data/` stay in place.
+
+**Renewal**: the free plan must be renewed by hand every 4 days, or the server is suspended. With `RENEWAL_USER_ID` set, the bot sends that user a direct message a day before the deadline, then every 12 hours until they click **Renewed**, which starts a new cycle. The first start counts as a renewal, so renew just before starting the bot. The renewal itself stays manual: the reminder only makes sure it is not forgotten.
+
+**better-sqlite3 stays on version 12**: from version 13, its Linux binary needs glibc 2.34, newer than the panel's image (`GLIBC_2.33 not found` at startup). Dependabot ignores its major updates.
+
+### Docker (alternative)
+
+The [`Dockerfile`](Dockerfile) builds a small image (base pinned by digest) for any container host, and [`fly.toml`](fly.toml) configures [Fly.io](https://fly.io) with a volume for the SQLite file:
 
 ```sh
 fly launch --no-deploy --copy-config
@@ -127,34 +148,13 @@ fly secrets set DISCORD_TOKEN=... DISCORD_CLIENT_ID=...
 fly deploy --ha=false
 ```
 
-Keep a single machine: two instances would open two gateway sessions and write to separate databases.
-
-The container starts as root only to take ownership of the volume, then runs as the unprivileged `node` user. Fly checks `GET /health` on the internal port 8080 (nothing is exposed publicly), and the bot exits if its Discord session stays down for 5 minutes, so the machine gets restarted.
+The container starts as root only to take ownership of the data volume, then runs as the unprivileged `node` user. With `HEALTH_PORT` set, the host can check `GET /health`, and the bot exits if its Discord session stays down for 5 minutes, so that the host restarts it.
 
 ### Backups
 
-Two layers protect the data:
+The bot writes a **daily copy** of the database to `data/backups/` (the 7 latest are kept), using SQLite's online backup while it runs. These copies cover a bad command or migration, but they live on the same disk as the database: download one from time to time (*Files* tab on the panel), since a free server can be lost with its disk.
 
-- **Daily copies** of the database in `/data/backups` (the 7 latest are kept), made with SQLite's online backup while the bot runs. They cover a bad command or migration.
-- **Fly volume snapshots** (daily, kept a few days) cover the loss of the volume: `fly volumes snapshots list`.
-
-To restore a copy: stop the machine, replace `/data/bot.db` with `/data/backups/bot-<date>.db` (for example through `fly ssh console`), delete `bot.db-wal` and `bot.db-shm`, then start it again.
-
-## Deployment (panel host: KataBump, Pterodactyl)
-
-Free bot hosts built on a Pterodactyl panel (such as [KataBump](https://katabump.com)) run `node index.js` and often offer no way to set environment variables. The root [`index.js`](index.js) covers both: it loads a `.env` file if there is one, then starts the compiled bot.
-
-1. Create a Node.js server and pick a **Node.js 24** Docker image in *Startup*; keep the JS file on `index.js`.
-2. Run `npm run pack:panel`: it builds `meeple-night-panel.tar.gz` with `index.js`, `dist/`, `drizzle/` and the production dependencies, including the Linux x64 binary of better-sqlite3 even when packing from Windows or macOS.
-3. Upload the archive through the *Files* tab, unarchive it, create a `.env` file next to it (`DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, `DATABASE_PATH=./data/bot.db`; see [`.env.example`](.env.example)) and start the server.
-
-To update, pack again and unarchive over the previous files: `.env` and `data/` stay in place. Download a copy from `data/backups/` from time to time, since a free server can be lost with its disk.
-
-better-sqlite3 stays on version 12: from version 13, its Linux binary needs glibc 2.34, newer than the images of some panels (`GLIBC_2.33 not found` at startup).
-
-### Renewal reminder
-
-Free plans must often be renewed by hand every few days. With `RENEWAL_USER_ID` set, the bot sends that user a direct message a day before the deadline, then every 12 hours until they click **Renewed**, which starts a new cycle. The first start counts as a renewal. The renewal itself stays manual: the reminder only makes sure it is not forgotten.
+To restore a copy: stop the bot, replace `data/bot.db` with `data/backups/bot-<date>.db`, delete `bot.db-wal` and `bot.db-shm`, then start it again.
 
 ## Data and privacy
 
