@@ -16,7 +16,7 @@ import {
   setNightMessage,
   upcomingNights,
 } from '../repositories/nights.js';
-import { refreshNightMessage, renderNight } from '../ui/night-message.js';
+import { nightUrl, refreshNightMessage, renderNight } from '../ui/night-message.js';
 import { plain } from '../ui/text.js';
 import { autocompleteNight } from './autocomplete.js';
 
@@ -119,9 +119,7 @@ export const gamenight: Command = {
         return;
       }
       const lines = nights.map((n) => {
-        const link = n.messageId
-          ? `https://discord.com/channels/${n.guildId}/${n.channelId}/${n.messageId}`
-          : null;
+        const link = nightUrl(n);
         const title = link ? `[${plain(n.title)}](${link})` : plain(n.title);
         return `**${title}** — ${discordTimestamp(n.startsAt, 'f')} (${discordTimestamp(n.startsAt, 'R')})`;
       });

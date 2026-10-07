@@ -42,8 +42,8 @@ export const en = {
       no: 'Noted, maybe next time!',
     },
     waitlisted: 'The night is full: you are on the waitlist.',
-    reminderDay: (title: string, when: string) => `📅 Reminder: **${title}** is tomorrow, ${when}.`,
-    reminderHours: (title: string, when: string) => `⏰ **${title}** starts ${when}!`,
+    reminderEarly: (title: string, when: string) => `📅 Reminder: **${title}** is on ${when}.`,
+    reminderLate: (title: string, when: string) => `⏰ **${title}** starts ${when}!`,
   },
   collection: {
     invalidFile: 'Please attach the `.json` file exported from MyLudo.',

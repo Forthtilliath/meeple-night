@@ -32,8 +32,18 @@ describe('dueReminders', () => {
   it('sends the day reminder within 24h and the hours reminder within 2h', () => {
     const due = dueReminders([night(1, hours(30)), night(2, hours(20)), night(3, hours(1))], now);
     expect(due.map((d) => [d.night.id, d.kind])).toEqual([
-      [2, 'day'],
-      [3, 'hours'],
+      [2, 'early'],
+      [3, 'late'],
+    ]);
+  });
+
+  it('uses the delays of each night', () => {
+    const due = dueReminders([night(1, hours(40)), night(2, hours(5))], now, (n) =>
+      n.id === 1 ? { earlyHours: 48, lateHours: 6 } : { earlyHours: 24, lateHours: 2 },
+    );
+    expect(due.map((d) => [d.night.id, d.kind])).toEqual([
+      [1, 'early'],
+      [2, 'early'],
     ]);
   });
 
@@ -52,7 +62,7 @@ describe('dueReminders', () => {
 
   it('does not send a late day reminder once in the 2h window', () => {
     const due = dueReminders([night(1, hours(1.5), { reminderDaySent: false })], now);
-    expect(due.map((d) => d.kind)).toEqual(['hours']);
+    expect(due.map((d) => d.kind)).toEqual(['late']);
   });
 });
 

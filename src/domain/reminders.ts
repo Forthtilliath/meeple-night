@@ -1,10 +1,16 @@
 import type { GameNight, Rsvp } from '../db/schema.js';
 
-const HOUR = 60 * 60 * 1000;
-export const DAY_REMINDER_MS = 24 * HOUR;
-export const HOURS_REMINDER_MS = 2 * HOUR;
+export const HOUR_MS = 60 * 60 * 1000;
 
-export type ReminderKind = 'day' | 'hours';
+/** First ("early") and second ("late") reminder, in hours before the night. */
+export interface ReminderDelays {
+  earlyHours: number;
+  lateHours: number;
+}
+
+export const DEFAULT_DELAYS: ReminderDelays = { earlyHours: 24, lateHours: 2 };
+
+export type ReminderKind = 'early' | 'late';
 
 export interface DueReminder {
   night: GameNight;
@@ -15,16 +21,21 @@ export interface DueReminder {
  * Returns the reminders to send now. Only the closest one is sent: a night created
  * 3 hours before it starts gets no "tomorrow" reminder, only the "in 2 hours" one later.
  */
-export function dueReminders(nights: GameNight[], now: Date): DueReminder[] {
+export function dueReminders(
+  nights: GameNight[],
+  now: Date,
+  delaysOf: (night: GameNight) => ReminderDelays = () => DEFAULT_DELAYS,
+): DueReminder[] {
   const due: DueReminder[] = [];
   for (const night of nights) {
     if (night.status !== 'scheduled') continue;
     const remaining = night.startsAt.getTime() - now.getTime();
     if (remaining <= 0) continue;
-    if (remaining <= HOURS_REMINDER_MS) {
-      if (!night.reminderHoursSent) due.push({ night, kind: 'hours' });
-    } else if (remaining <= DAY_REMINDER_MS && !night.reminderDaySent) {
-      due.push({ night, kind: 'day' });
+    const { earlyHours, lateHours } = delaysOf(night);
+    if (remaining <= lateHours * HOUR_MS) {
+      if (!night.reminderHoursSent) due.push({ night, kind: 'late' });
+    } else if (remaining <= earlyHours * HOUR_MS && !night.reminderDaySent) {
+      due.push({ night, kind: 'early' });
     }
   }
   return due;
