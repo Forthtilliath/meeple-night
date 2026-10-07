@@ -9,6 +9,7 @@ import {
 import { t } from '../i18n/index.js';
 import { log } from '../log.js';
 import { getRsvps, markReminderSent, nightsStartingBefore } from '../repositories/nights.js';
+import { plain } from '../ui/text.js';
 
 const CHECK_INTERVAL_MS = 60_000;
 
@@ -21,8 +22,8 @@ async function sendReminder({ client, db }: BotContext, { night, kind }: DueRemi
   const m = t(channel.guild.preferredLocale).night;
   const people = attendance(getRsvps(db, night.id), night.maxPlayers);
   const when = discordTimestamp(night.startsAt, kind === 'day' ? 't' : 'R');
-  const text =
-    kind === 'day' ? m.reminderDay(night.title, when) : m.reminderHours(night.title, when);
+  const title = plain(night.title);
+  const text = kind === 'day' ? m.reminderDay(title, when) : m.reminderHours(title, when);
   const pinged = [...people.confirmed, ...people.maybe];
   const link = night.messageId
     ? `\nhttps://discord.com/channels/${night.guildId}/${night.channelId}/${night.messageId}`

@@ -12,6 +12,7 @@ import type { Poll } from '../db/schema.js';
 import { tally, winners } from '../domain/voting.js';
 import { t } from '../i18n/index.js';
 import { getPollGames, getVotes } from '../repositories/polls.js';
+import { plain } from './text.js';
 
 export const POLL_PREFIX = 'poll';
 
@@ -31,7 +32,7 @@ export function renderPoll(db: Db, poll: Poll, locale: string): RenderedMessage 
     games.map((g) => g.id),
     votes,
   );
-  const titleOf = new Map(games.map((g) => [g.id, g.title]));
+  const titleOf = new Map(games.map((g) => [g.id, plain(g.title)]));
   const open = poll.status === 'open';
 
   const lines = results.map(

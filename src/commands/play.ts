@@ -9,6 +9,7 @@ import { computeRatings, eloDeltas, INITIAL_RATING, ranksFromScores } from '../d
 import { localize, lt, t } from '../i18n/index.js';
 import { getGame } from '../repositories/games.js';
 import { playHistory, recordPlay } from '../repositories/plays.js';
+import { plain } from '../ui/text.js';
 import { autocompleteGame } from './autocomplete.js';
 
 const MAX_PLAYERS = 8;
@@ -125,7 +126,7 @@ export const play: Command = {
       });
     const embed = new EmbedBuilder()
       .setColor(0x57f287)
-      .setDescription([m.play.recorded(game.title), '', ...lines].join('\n'));
+      .setDescription([m.play.recorded(plain(game.title)), '', ...lines].join('\n'));
     await interaction.reply({ embeds: [embed], allowedMentions: { users: [] } });
   },
 
