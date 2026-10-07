@@ -9,6 +9,14 @@ updates:
       dependencies:
         patterns: ['*']
 
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      docker:
+        patterns: ['*']
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
