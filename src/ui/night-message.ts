@@ -27,6 +27,13 @@ function mentions(userIds: string[], empty: string): string {
   return text.length > FIELD_LIMIT ? `${text.slice(0, FIELD_LIMIT - 1)}…` : text;
 }
 
+/** Link to the night's public message, once it has been posted. */
+export function nightUrl(night: GameNight): string | null {
+  return night.messageId
+    ? `https://discord.com/channels/${night.guildId}/${night.channelId}/${night.messageId}`
+    : null;
+}
+
 export function isOpen(night: GameNight, now = new Date()): boolean {
   return night.status === 'scheduled' && night.startsAt > now;
 }

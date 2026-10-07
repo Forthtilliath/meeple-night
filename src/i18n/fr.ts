@@ -46,8 +46,8 @@ export const fr: Messages = {
       no: 'Noté, ce sera pour la prochaine !',
     },
     waitlisted: "La soirée est complète : tu es sur liste d'attente.",
-    reminderDay: (title, when) => `📅 Rappel : **${title}**, c'est demain, ${when}.`,
-    reminderHours: (title, when) => `⏰ **${title}** commence ${when} !`,
+    reminderEarly: (title, when) => `📅 Rappel : **${title}** a lieu le ${when}.`,
+    reminderLate: (title, when) => `⏰ **${title}** commence ${when} !`,
   },
   collection: {
     invalidFile: 'Joins le fichier `.json` exporté depuis MyLudo.',

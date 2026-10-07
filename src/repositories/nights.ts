@@ -61,9 +61,11 @@ export function nightsStartingBefore(db: Db, now: Date, until: Date): GameNight[
 }
 
 export function markReminderSent(db: Db, nightId: number, kind: ReminderKind): void {
-  // The hours reminder supersedes the day one, so both are flagged to never send it late.
+  // The late reminder supersedes the early one, so both are flagged to never send it late.
   const flags =
-    kind === 'day' ? { reminderDaySent: true } : { reminderDaySent: true, reminderHoursSent: true };
+    kind === 'early'
+      ? { reminderDaySent: true }
+      : { reminderDaySent: true, reminderHoursSent: true };
   db.update(gameNights).set(flags).where(eq(gameNights.id, nightId)).run();
 }
 
