@@ -6,6 +6,7 @@ import { commands, componentHandlers } from './commands/index.js';
 import { loadConfig } from './config.js';
 import { createDb } from './db/client.js';
 import { log } from './log.js';
+import { purgeGuild } from './repositories/guilds.js';
 import { startReminderLoop } from './scheduler/reminders.js';
 
 const config = loadConfig();
@@ -21,6 +22,12 @@ client.on(Events.Warn, (message) => log.warn('Client warning', { message }));
 process.on('unhandledRejection', (error) => log.error('Unhandled rejection', { error }));
 
 client.on(Events.InteractionCreate, createRouter(commands, componentHandlers, ctx));
+
+// Fired when the bot is kicked or the server is deleted (outages emit GuildUnavailable instead).
+client.on(Events.GuildDelete, (guild) => {
+  purgeGuild(db, guild.id);
+  log.info('Left guild, data purged', { guildId: guild.id });
+});
 
 const stopReminders = startReminderLoop(ctx);
 
