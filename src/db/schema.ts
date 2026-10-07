@@ -172,6 +172,12 @@ export const guildSettings = sqliteTable('guild_settings', {
   locale: text('locale', { enum: ['en', 'fr'] }),
 });
 
+/** Values of the instance itself, not tied to a server (e.g. the hosting renewal tracking). */
+export const botState = sqliteTable('bot_state', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+});
+
 export type Game = typeof games.$inferSelect;
 export type NewGame = typeof games.$inferInsert;
 export type GameNight = typeof gameNights.$inferSelect;
