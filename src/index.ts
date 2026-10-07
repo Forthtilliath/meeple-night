@@ -1,15 +1,21 @@
+import { dirname } from 'node:path';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { startBackups } from './backup.js';
 import { registerCommands } from './bot/register.js';
 import { createRouter } from './bot/router.js';
 import type { BotContext } from './bot/types.js';
 import { commands, componentHandlers, modalHandlers } from './commands/index.js';
 import { loadConfig } from './config.js';
 import { createDb } from './db/client.js';
+import { startHealthServer, startWatchdog } from './health.js';
 import { log } from './log.js';
+import { dropPrivileges } from './privileges.js';
 import { purgeGuild } from './repositories/guilds.js';
 import { startScheduler } from './scheduler/index.js';
 
 const config = loadConfig();
+// Before anything touches the disk or the network.
+dropPrivileges(dirname(config.databasePath));
 const db = createDb(config.databasePath);
 
 // Slash commands and components only: no privileged intent (message content, members) needed.
@@ -30,6 +36,11 @@ client.on(Events.GuildDelete, (guild) => {
 });
 
 const stopScheduler = startScheduler(ctx);
+const stopBackups = config.backupDir
+  ? startBackups(db, config.backupDir, config.backupKeep)
+  : () => undefined;
+const health = config.healthPort ? startHealthServer(client, config.healthPort) : null;
+const stopWatchdog = startWatchdog(client);
 
 client.once(Events.ClientReady, async (ready) => {
   log.info('Logged in', { user: ready.user.tag, guilds: ready.guilds.cache.size });
@@ -42,6 +53,9 @@ client.once(Events.ClientReady, async (ready) => {
 const shutdown = async (signal: string) => {
   log.info('Shutting down', { signal });
   stopScheduler();
+  stopBackups();
+  stopWatchdog();
+  health?.close();
   await client.destroy();
   db.$client.close();
   process.exit(0);
