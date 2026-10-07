@@ -67,4 +67,12 @@ describe('checkReminders', () => {
     await checkReminders(ctx, new Date(now.getTime() - 90 * 60_000));
     expect(sent[0]?.content).toContain('📅');
   });
+
+  it('writes in the language set for the server, whatever the Discord one', async () => {
+    const { channel, sent } = fakeChannel('en-US');
+    const { ctx, db } = setup(async () => channel);
+    updateSettings(db, 'g', { locale: 'fr' });
+    await checkReminders(ctx, now);
+    expect(sent[0]?.content).toContain('commence');
+  });
 });
