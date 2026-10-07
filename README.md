@@ -44,6 +44,7 @@ src/
 ├── bot/           Router, registration, permissions, Discord events, downloads
 ├── backup.ts      Daily SQLite copies
 ├── health.ts      /health endpoint and gateway watchdog
+├── renewal.ts     Optional reminder to renew a free hosting plan
 └── log.ts         JSON logs
 ```
 
@@ -72,7 +73,7 @@ erDiagram
     plays ||--o{ play_players : ranks
 ```
 
-Every table is scoped by Discord server (`guild_id`), so one instance serves several servers; `guild_settings` holds each server's preferences.
+Every table is scoped by Discord server (`guild_id`), so one instance serves several servers; `guild_settings` holds each server's preferences. The only exception is `bot_state`, a key-value table for the instance itself (the hosting renewal tracking).
 
 ## Getting started
 
@@ -102,6 +103,8 @@ Requirements: Node.js 24+.
 | `TIMEZONE` | `Europe/Paris` | Default timezone, overridable per server |
 | `BACKUP_DIR` / `BACKUP_KEEP` | `<db folder>/backups` / `7` | Daily database copies; `BACKUP_KEEP=0` disables them |
 | `HEALTH_PORT` | disabled | Serves `GET /health` (200 when connected to Discord, 503 otherwise) |
+| `RENEWAL_USER_ID` | disabled | Discord user who gets the [renewal reminder](#renewal-reminder) by direct message |
+| `RENEWAL_DAYS` / `RENEWAL_URL` / `RENEWAL_LOCALE` | `4` / — / `en` | Days a renewal lasts, link to the hosting panel, language of the reminder (`en` or `fr`) |
 
 ### Scripts
 
@@ -135,6 +138,20 @@ Two layers protect the data:
 - **Fly volume snapshots** (daily, kept a few days) cover the loss of the volume: `fly volumes snapshots list`.
 
 To restore a copy: stop the machine, replace `/data/bot.db` with `/data/backups/bot-<date>.db` (for example through `fly ssh console`), delete `bot.db-wal` and `bot.db-shm`, then start it again.
+
+## Deployment (panel host: KataBump, Pterodactyl)
+
+Free bot hosts built on a Pterodactyl panel (such as [KataBump](https://katabump.com)) run `node index.js` and often offer no way to set environment variables. The root [`index.js`](index.js) covers both: it loads a `.env` file if there is one, then starts the compiled bot.
+
+1. Create a Node.js server and pick a **Node.js 24** Docker image in *Startup*; keep the JS file on `index.js`.
+2. Build locally with `npm run build`, then upload `index.js`, `dist/`, `drizzle/`, `package.json` and `package-lock.json` through the *Files* tab. Leave `node_modules` out: the panel installs the dependencies for its own platform.
+3. Create a `.env` file next to them (`DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, `DATABASE_PATH=./data/bot.db`; see [`.env.example`](.env.example)) and start the server.
+
+To update, rebuild and upload `dist/` again (and `drizzle/` after a schema change): `.env` and `data/` stay in place. Download a copy from `data/backups/` from time to time, since a free server can be lost with its disk.
+
+### Renewal reminder
+
+Free plans must often be renewed by hand every few days. With `RENEWAL_USER_ID` set, the bot sends that user a direct message a day before the deadline, then every 12 hours until they click **Renewed**, which starts a new cycle. The first start counts as a renewal. The renewal itself stays manual: the reminder only makes sure it is not forgotten.
 
 ## Data and privacy
 
