@@ -10,6 +10,7 @@ import { parseMyLudoExport } from '../domain/myludo.js';
 import { fitsFilter } from '../domain/voting.js';
 import { localize, lt, t } from '../i18n/index.js';
 import { getGame, importGames, listGames } from '../repositories/games.js';
+import { getSettings } from '../repositories/guilds.js';
 import { countPlays } from '../repositories/plays.js';
 import { autocompleteGame } from './autocomplete.js';
 
@@ -59,9 +60,10 @@ const data = localize(
     ),
   );
 
-async function importCollection(interaction: ChatInput, { db }: BotContext): Promise<void> {
+async function importCollection(interaction: ChatInput, { db, timezone }: BotContext) {
   const m = t(interaction.locale);
-  if (!isManager(interaction)) {
+  const { organizerRoleId } = getSettings(db, interaction.guildId, timezone);
+  if (!isManager(interaction, organizerRoleId)) {
     await interaction.reply({ content: m.common.noPermission, flags: MessageFlags.Ephemeral });
     return;
   }

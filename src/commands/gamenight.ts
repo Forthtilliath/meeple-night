@@ -8,6 +8,7 @@ import { canManage } from '../bot/permissions.js';
 import type { Command } from '../bot/types.js';
 import { discordTimestamp, parseLocalDateTime } from '../domain/dates.js';
 import { localize, lt, t } from '../i18n/index.js';
+import { getSettings } from '../repositories/guilds.js';
 import {
   cancelNight,
   createNight,
@@ -76,12 +77,13 @@ export const gamenight: Command = {
   async execute(interaction, ctx) {
     const m = t(interaction.locale);
     const sub = interaction.options.getSubcommand();
+    const settings = getSettings(ctx.db, interaction.guildId, ctx.timezone);
 
     if (sub === 'create') {
       const startsAt = parseLocalDateTime(
         interaction.options.getString('date', true),
         interaction.options.getString('time', true),
-        ctx.timezone,
+        settings.timezone,
       );
       if (!startsAt) {
         await interaction.reply({ content: m.night.invalidDate, flags: MessageFlags.Ephemeral });
@@ -138,7 +140,7 @@ export const gamenight: Command = {
       await interaction.reply({ content: m.common.nightNotFound, flags: MessageFlags.Ephemeral });
       return;
     }
-    if (!canManage(interaction, night.createdBy)) {
+    if (!canManage(interaction, night.createdBy, settings.organizerRoleId)) {
       await interaction.reply({ content: m.common.noPermission, flags: MessageFlags.Ephemeral });
       return;
     }

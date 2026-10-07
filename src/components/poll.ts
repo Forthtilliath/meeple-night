@@ -2,13 +2,14 @@ import { MessageFlags } from 'discord.js';
 import { canManage } from '../bot/permissions.js';
 import type { ComponentHandler } from '../bot/types.js';
 import { t } from '../i18n/index.js';
+import { getSettings } from '../repositories/guilds.js';
 import { closePoll, getPoll, getPollGames, setVotes } from '../repositories/polls.js';
 import { POLL_PREFIX, renderPoll } from '../ui/poll-message.js';
 
 export const pollHandler: ComponentHandler = {
   prefix: POLL_PREFIX,
 
-  async handle(interaction, [pollId, action], { db }) {
+  async handle(interaction, [pollId, action], { db, timezone }) {
     const m = t(interaction.locale);
     const poll = getPoll(db, Number(pollId));
     if (!poll || poll.guildId !== interaction.guildId || poll.status !== 'open') {
@@ -26,7 +27,8 @@ export const pollHandler: ComponentHandler = {
     }
 
     if (action === 'close') {
-      if (!canManage(interaction, poll.createdBy)) {
+      const { organizerRoleId } = getSettings(db, interaction.guildId, timezone);
+      if (!canManage(interaction, poll.createdBy, organizerRoleId)) {
         await interaction.reply({ content: m.common.noPermission, flags: MessageFlags.Ephemeral });
         return;
       }

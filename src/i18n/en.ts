@@ -95,6 +95,17 @@ export const en = {
     line: (position: number, user: string, rating: number, plays: number) =>
       `**${position}.** ${user} — ${Math.round(rating)} (${plays} play${plays > 1 ? 's' : ''})`,
   },
+  settings: {
+    title: 'Server settings',
+    timezone: 'Timezone',
+    organizerRole: 'Organizer role',
+    noRole: 'None: only members with *Manage Server*',
+    reminders: 'Reminders',
+    reminderHours: (early: number, late: number) => `${early} h and ${late} h before the night`,
+    invalidTimezone: 'Unknown timezone. Pick one from the list, e.g. `Europe/Paris`.',
+    invalidReminders: 'The second reminder must be closer to the night than the first one.',
+    saved: 'Settings saved.',
+  },
 };
 
 export type Messages = typeof en;
