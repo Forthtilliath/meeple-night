@@ -2,16 +2,25 @@ import type { Game } from '../db/schema.js';
 
 export interface CandidateFilter {
   players?: number | null;
+  minDuration?: number | null;
   maxDuration?: number | null;
 }
 
-/** A game fits if the player count is within its range and its shortest duration fits. */
-export function fitsFilter(game: Game, { players, maxDuration }: CandidateFilter): boolean {
+/**
+ * A game fits if the player count is within its range and its duration range overlaps the
+ * wanted one. Unknown bounds never exclude a game.
+ */
+export function fitsFilter(
+  game: Game,
+  { players, minDuration, maxDuration }: CandidateFilter,
+): boolean {
   if (players) {
     if (game.minPlayers !== null && players < game.minPlayers) return false;
     if (game.maxPlayers !== null && players > game.maxPlayers) return false;
   }
   if (maxDuration && game.minDuration !== null && game.minDuration > maxDuration) return false;
+  const longest = game.maxDuration ?? game.minDuration;
+  if (minDuration && longest !== null && longest < minDuration) return false;
   return true;
 }
 
