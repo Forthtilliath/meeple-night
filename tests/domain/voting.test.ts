@@ -48,6 +48,15 @@ describe('fitsFilter', () => {
     expect(fitsFilter(game(1), { maxDuration: 30 })).toBe(true);
     expect(fitsFilter(game(1), { maxDuration: 20 })).toBe(false);
   });
+
+  it('checks the longest duration against the minimum', () => {
+    expect(fitsFilter(game(1), { minDuration: 60 })).toBe(true);
+    expect(fitsFilter(game(1), { minDuration: 90 })).toBe(false);
+    expect(fitsFilter(game(1, { maxDuration: null }), { minDuration: 45 })).toBe(false);
+    expect(fitsFilter(game(1, { minDuration: null, maxDuration: null }), { minDuration: 90 })).toBe(
+      true,
+    );
+  });
 });
 
 describe('pickCandidates', () => {
