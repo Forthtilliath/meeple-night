@@ -1,5 +1,5 @@
 {
-  "name": "discord-gameboard-planner",
+  "name": "meeple-night",
   "version": "0.1.0",
   "description": "Discord bot for board game groups: game nights, RSVP, reminders, game votes, MyLudo collection import, play tracking and Elo ranking.",
   "type": "module",
