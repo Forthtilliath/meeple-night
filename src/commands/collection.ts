@@ -12,6 +12,7 @@ import { localize, lt, t } from '../i18n/index.js';
 import { getGame, importGames, listGames } from '../repositories/games.js';
 import { getSettings } from '../repositories/guilds.js';
 import { countPlays } from '../repositories/plays.js';
+import { plain } from '../ui/text.js';
 import { autocompleteGame } from './autocomplete.js';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -110,7 +111,7 @@ async function listCollection(interaction: ChatInput, { db }: BotContext): Promi
     .slice(0, MAX_LINES)
     .map(
       (g) =>
-        `**${g.title}** · ${m.common.players(g.minPlayers, g.maxPlayers)} · ${m.common.duration(g.minDuration, g.maxDuration)}`,
+        `**${plain(g.title)}** · ${m.common.players(g.minPlayers, g.maxPlayers)} · ${m.common.duration(g.minDuration, g.maxDuration)}`,
     );
   const embed = new EmbedBuilder()
     .setTitle(m.collection.listTitle(games.length))
@@ -141,10 +142,10 @@ async function showGame(interaction: ChatInput, { db }: BotContext): Promise<voi
   if (game.year) embed.addFields({ name: c.year, value: String(game.year), inline: true });
   if (game.rating) embed.addFields({ name: c.rating, value: `${game.rating}/10`, inline: true });
   if (game.categories.length > 0) {
-    embed.addFields({ name: c.categories, value: game.categories.join(', ') });
+    embed.addFields({ name: c.categories, value: plain(game.categories.join(', ')) });
   }
   if (game.mechanics.length > 0) {
-    embed.addFields({ name: c.mechanics, value: game.mechanics.join(', ') });
+    embed.addFields({ name: c.mechanics, value: plain(game.mechanics.join(', ')) });
   }
   await interaction.reply({ embeds: [embed] });
 }

@@ -13,6 +13,7 @@ import { discordTimestamp } from '../domain/dates.js';
 import { attendance } from '../domain/reminders.js';
 import { t } from '../i18n/index.js';
 import { getRsvps } from '../repositories/nights.js';
+import { plain } from './text.js';
 
 export const RSVP_PREFIX = 'rsvp';
 
@@ -45,7 +46,9 @@ export function renderNight(db: Db, night: GameNight, locale: string): RenderedM
       value: `${discordTimestamp(night.startsAt, 'F')} (${discordTimestamp(night.startsAt, 'R')})`,
     })
     .setFooter({ text: m.footer(night.id) });
-  if (night.location) embed.addFields({ name: m.where, value: night.location, inline: true });
+  if (night.location) {
+    embed.addFields({ name: m.where, value: plain(night.location), inline: true });
+  }
   embed.addFields(
     { name: m.organizer, value: `<@${night.createdBy}>`, inline: true },
     {
