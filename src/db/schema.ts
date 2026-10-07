@@ -168,6 +168,8 @@ export const guildSettings = sqliteTable('guild_settings', {
   organizerRoleId: text('organizer_role_id'),
   reminderEarlyHours: integer('reminder_early_hours').notNull().default(24),
   reminderLateHours: integer('reminder_late_hours').notNull().default(2),
+  /** Language of the public messages; null = the Discord server language. */
+  locale: text('locale', { enum: ['en', 'fr'] }),
 });
 
 export type Game = typeof games.$inferSelect;
