@@ -6,6 +6,7 @@ import type {
   EmbedBuilder,
   MessageActionRowComponentBuilder,
   MessageComponentInteraction,
+  ModalSubmitInteraction,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import type { Db } from '../db/client.js';
@@ -35,6 +36,16 @@ export interface ComponentHandler {
   prefix: string;
   handle(
     interaction: MessageComponentInteraction<'cached'>,
+    args: string[],
+    ctx: BotContext,
+  ): Promise<void>;
+}
+
+/** Handles modal submissions whose custom id is `<prefix>:<args…>`. */
+export interface ModalHandler {
+  prefix: string;
+  handle(
+    interaction: ModalSubmitInteraction<'cached'>,
     args: string[],
     ctx: BotContext,
   ): Promise<void>;

@@ -116,6 +116,22 @@ export const fr: Messages = {
     scoresMismatch: (players) =>
       `Indique exactement ${players} scores séparés par des virgules, dans l'ordre des joueurs.`,
     recorded: (game) => `Partie de **${game}** enregistrée !`,
+    footer: (id) => `Partie n°${id} · une erreur ? /partie annuler`,
+    notInPlay:
+      "Tu ne peux enregistrer qu'une partie à laquelle tu as joué, sauf si tu es organisateur.",
+    notFound: 'Partie introuvable.',
+    undone: (id) => `Partie n°${id} supprimée : les classements sont recalculés.`,
+    historyTitle: 'Dernières parties',
+    historyEmpty: 'Aucune partie ne correspond.',
+    historyLine: (id, when, game, ranking) => `\`n°${id}\` ${when} · **${game}** — ${ranking}`,
+    noAttendees: 'Pas assez d’inscrits confirmés pour cette soirée (2 minimum).',
+    noGame: "Choisis le jeu joué : aucun vote n'en a désigné pour cette soirée.",
+    modalTitle: 'Résultats de la soirée',
+    modalLabel: "Ordre d'arrivée, gagnant en premier",
+    modalHint: "Un joueur par ligne. Retire ceux qui n'ont pas joué. Optionnel : « Nom : score ».",
+    unknownPlayer: (name) => `« ${name} » n'est pas un inscrit confirmé de la soirée.`,
+    duplicateLine: (name) => `« ${name} » apparaît deux fois.`,
+    partialScores: 'Donne un score à chaque joueur, ou à aucun.',
     ratingLine: (rank, user, rating, delta) =>
       `${rank}. ${user} — ${Math.round(rating)} (${delta >= 0 ? '+' : ''}${Math.round(delta)})`,
   },
@@ -123,6 +139,10 @@ export const fr: Messages = {
     titleOverall: 'Classement Elo — tous les jeux',
     titleGame: (game) => `Classement Elo — ${game}`,
     empty: 'Aucune partie enregistrée. Utilise `/partie enregistrer` après une partie !',
+    notEnough: (min) =>
+      `Personne n'a encore ${min} parties. Essaie \`parties_min: 1\` pour voir les cotes provisoires.`,
+    hidden: (count, min) =>
+      `${count} ${plural(count, 'joueur')} avec moins de ${min} parties ${count > 1 ? 'masqués' : 'masqué'}`,
     line: (position, user, rating, plays) =>
       `**${position}.** ${user} — ${Math.round(rating)} (${plays} ${plural(plays, 'partie')})`,
   },

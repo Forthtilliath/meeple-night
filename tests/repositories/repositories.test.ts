@@ -11,7 +11,7 @@ import {
   searchGames,
 } from '../../src/repositories/games.js';
 import { createNight, getRsvps, setRsvp } from '../../src/repositories/nights.js';
-import { playHistory, recordPlay } from '../../src/repositories/plays.js';
+import { deletePlay, playHistory, recentPlays, recordPlay } from '../../src/repositories/plays.js';
 import { createPoll, getPollGames, getVotes, setVotes } from '../../src/repositories/polls.js';
 
 const sample = readFileSync(new URL('../fixtures/myludo-sample.json', import.meta.url), 'utf8');
@@ -136,5 +136,18 @@ describe('plays repository', () => {
       'b',
     ]);
     expect(playHistory(db, 'other')).toEqual([]);
+
+    const recent = recentPlays(db, 'g1');
+    expect(recent.map((p) => p.players.map((pl) => pl.userId))).toEqual([
+      ['b', 'a'],
+      ['a', 'c'],
+    ]);
+    expect(recentPlays(db, 'g1', { userId: 'c' })).toHaveLength(1);
+    expect(recentPlays(db, 'g1', { gameId: gameId + 1000 })).toEqual([]);
+
+    const [latest] = recent;
+    expect(deletePlay(db, 'other', latest?.id ?? 0)).toBe(false);
+    expect(deletePlay(db, 'g1', latest?.id ?? 0)).toBe(true);
+    expect(playHistory(db, 'g1')).toHaveLength(1);
   });
 });

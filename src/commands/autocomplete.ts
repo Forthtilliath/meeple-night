@@ -6,7 +6,7 @@ import { upcomingNights } from '../repositories/nights.js';
 
 const MAX_CHOICE_LENGTH = 100;
 
-const truncate = (text: string) =>
+export const truncate = (text: string) =>
   text.length > MAX_CHOICE_LENGTH ? `${text.slice(0, MAX_CHOICE_LENGTH - 1)}…` : text;
 
 /** Suggests games of the collection matching what the user is typing. */
