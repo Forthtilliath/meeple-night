@@ -3,7 +3,13 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from '../../src/db/client.js';
 import { parseMyLudoExport } from '../../src/domain/myludo.js';
 import { attendance } from '../../src/domain/reminders.js';
-import { importGames, listGames, searchGames } from '../../src/repositories/games.js';
+import {
+  addGame,
+  archiveGame,
+  importGames,
+  listGames,
+  searchGames,
+} from '../../src/repositories/games.js';
 import { createNight, getRsvps, setRsvp } from '../../src/repositories/nights.js';
 import { playHistory, recordPlay } from '../../src/repositories/plays.js';
 import { createPoll, getPollGames, getVotes, setVotes } from '../../src/repositories/polls.js';
@@ -19,10 +25,40 @@ beforeEach(() => {
 describe('games repository', () => {
   it('imports, then updates on re-import without duplicates', () => {
     const { games } = parseMyLudoExport(sample);
-    expect(importGames(db, 'g1', games)).toEqual({ created: 4, updated: 0 });
-    expect(importGames(db, 'g1', games)).toEqual({ created: 0, updated: 4 });
-    expect(importGames(db, 'g2', games)).toEqual({ created: 4, updated: 0 });
+    expect(importGames(db, 'g1', games)).toEqual({ created: 4, updated: 0, archived: 0 });
+    expect(importGames(db, 'g1', games)).toEqual({ created: 0, updated: 4, archived: 0 });
+    expect(importGames(db, 'g2', games)).toEqual({ created: 4, updated: 0, archived: 0 });
     expect(listGames(db, 'g1')).toHaveLength(4);
+  });
+
+  it('archives games missing from a synced import, and restores them later', () => {
+    const { games } = parseMyLudoExport(sample);
+    importGames(db, 'g1', games);
+    const manual = addGame(db, 'g1', {
+      title: 'Homemade',
+      minPlayers: 2,
+      maxPlayers: 4,
+      minDuration: 20,
+      maxDuration: 20,
+    });
+    expect(importGames(db, 'g1', games.slice(1), { sync: true }).archived).toBe(1);
+    expect(listGames(db, 'g1').map((g) => g.title)).not.toContain(games[0]?.title);
+    expect(listGames(db, 'g1').map((g) => g.id)).toContain(manual?.id);
+    expect(listGames(db, 'g1', { includeArchived: true })).toHaveLength(5);
+
+    importGames(db, 'g1', games);
+    expect(listGames(db, 'g1')).toHaveLength(5);
+  });
+
+  it('adds games by hand without duplicates and archives them', () => {
+    const game = { title: 'Azul', minPlayers: 2, maxPlayers: 4, minDuration: 40, maxDuration: 40 };
+    const added = addGame(db, 'g1', game);
+    expect(addGame(db, 'g1', { ...game, title: 'AZUL' })).toBeNull();
+    expect(archiveGame(db, 'g1', added?.id ?? 0)).toBe(true);
+    expect(archiveGame(db, 'g1', added?.id ?? 0)).toBe(false);
+    expect(searchGames(db, 'g1', 'azu')).toEqual([]);
+    expect(searchGames(db, 'g1', 'azu', 25, { includeArchived: true })).toHaveLength(1);
+    expect(addGame(db, 'g1', game)?.id).toBe(added?.id);
   });
 
   it('searches titles case-insensitively and escapes wildcards', () => {

@@ -61,12 +61,19 @@ export const en = {
     invalidFile: 'Please attach the `.json` file exported from MyLudo.',
     tooLarge: 'This file is too large (max 5 MB).',
     parseError: "This file doesn't look like a MyLudo collection export.",
-    imported: (created: number, updated: number, skipped: number) =>
-      `Import done: **${created}** new games, **${updated}** updated, ${skipped} extensions/accessories skipped.`,
+    imported: (created: number, updated: number, skipped: number, archived: number) =>
+      `Import done: **${created}** new games, **${updated}** updated, ${skipped} extensions/accessories skipped${archived ? `, **${archived}** removed` : ''}.`,
+    page: (page: number, pages: number) => `Page ${page}/${pages}`,
+    previous: 'Previous',
+    next: 'Next',
+    added: (title: string) => `**${title}** added to the collection.`,
+    duplicate: 'This game is already in the collection.',
+    removed: (title: string) =>
+      `**${title}** removed from the collection. Its plays stay in the rankings.`,
+    invalidRange: 'The minimum number of players is above the maximum.',
     empty: 'The collection is empty. Import it with `/collection import`.',
     noMatch: 'No game matches these filters.',
     listTitle: (count: number) => `Collection — ${count} game${count > 1 ? 's' : ''}`,
-    more: (count: number) => `…and ${count} more. Narrow it down with the filters.`,
     players: 'Players',
     duration: 'Duration',
     age: 'Age',

@@ -19,6 +19,16 @@ export async function autocompleteGame(
   await interaction.respond(games.map((g) => ({ name: truncate(g.title), value: g.id })));
 }
 
+/** Same, including games removed from the collection: their plays still count. */
+export async function autocompleteAnyGame(
+  interaction: AutocompleteInteraction<'cached'>,
+  { db }: BotContext,
+): Promise<void> {
+  const query = interaction.options.getFocused();
+  const games = searchGames(db, interaction.guildId, query, 25, { includeArchived: true });
+  await interaction.respond(games.map((g) => ({ name: truncate(g.title), value: g.id })));
+}
+
 /** Suggests upcoming game nights, labelled with their date in the server's timezone. */
 export async function autocompleteNight(
   interaction: AutocompleteInteraction<'cached'>,

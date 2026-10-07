@@ -9,7 +9,7 @@ import { standings } from '../domain/elo.js';
 import { localize, lt, t } from '../i18n/index.js';
 import { getGame } from '../repositories/games.js';
 import { playHistory } from '../repositories/plays.js';
-import { autocompleteGame } from './autocomplete.js';
+import { autocompleteAnyGame } from './autocomplete.js';
 
 const TOP = 15;
 
@@ -52,5 +52,5 @@ export const leaderboard: Command = {
     await interaction.reply({ embeds: [embed], allowedMentions: { users: [] } });
   },
 
-  autocomplete: autocompleteGame,
+  autocomplete: autocompleteAnyGame,
 };
