@@ -43,6 +43,7 @@ export async function cancelNightCommand(
   await deleteNightEvent(client, db, cancelled);
   await notifyNight(
     client,
+    db,
     cancelled,
     (locale) =>
       t(locale).night.noticeCancelled(plain(night.title), discordTimestamp(night.startsAt, 'F')),

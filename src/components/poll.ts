@@ -3,7 +3,7 @@ import { canManage } from '../bot/permissions.js';
 import type { ComponentHandler } from '../bot/types.js';
 import { attendance } from '../domain/reminders.js';
 import { t } from '../i18n/index.js';
-import { getSettings } from '../repositories/guilds.js';
+import { getSettings, serverLocale } from '../repositories/guilds.js';
 import { getNight, getRsvps } from '../repositories/nights.js';
 import { finalizePoll, getPoll, getPollGames, setVotes } from '../repositories/polls.js';
 import { refreshPollNight } from '../ui/poll-closing.js';
@@ -24,6 +24,7 @@ export const pollHandler: ComponentHandler = {
       await reply(m.vote.closedAlready);
       return;
     }
+    const locale = serverLocale(db, poll.guildId, interaction.guildLocale);
 
     if (action === 'select' && interaction.isStringSelectMenu()) {
       if (poll.attendeesOnly && poll.nightId) {
@@ -39,7 +40,7 @@ export const pollHandler: ComponentHandler = {
       const allowed = new Set(getPollGames(db, poll.id).map((g) => g.id));
       const gameIds = interaction.values.map(Number).filter((id) => allowed.has(id));
       setVotes(db, poll.id, interaction.user.id, gameIds);
-      await interaction.update(renderPoll(db, poll, interaction.guildLocale));
+      await interaction.update(renderPoll(db, poll, locale));
       await interaction.followUp({ content: m.vote.saved, flags: MessageFlags.Ephemeral });
       return;
     }
@@ -51,7 +52,7 @@ export const pollHandler: ComponentHandler = {
         return;
       }
       const closed = finalizePoll(db, poll);
-      await interaction.update(renderPoll(db, closed, interaction.guildLocale));
+      await interaction.update(renderPoll(db, closed, locale));
       await refreshPollNight(ctx, closed);
     }
   },

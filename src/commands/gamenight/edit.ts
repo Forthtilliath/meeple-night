@@ -76,6 +76,7 @@ export async function editNightCommand(
   if (patch.startsAt || patch.location) {
     await notifyNight(
       client,
+      db,
       updated,
       (locale) =>
         t(locale).night.noticeChanged(
@@ -90,6 +91,7 @@ export async function editNightCommand(
   if (promoted.length > 0) {
     await notifyNight(
       client,
+      db,
       updated,
       (locale) => t(locale).night.noticePromoted(plain(updated.title)),
       promoted,

@@ -2,6 +2,7 @@ import type { BotContext } from '../bot/types.js';
 import type { Poll } from '../db/schema.js';
 import { t } from '../i18n/index.js';
 import { log } from '../log.js';
+import { serverLocale } from '../repositories/guilds.js';
 import { getNight } from '../repositories/nights.js';
 import { refreshNightMessage } from './night-message.js';
 import { pollResultText, renderPoll } from './poll-message.js';
@@ -18,7 +19,7 @@ export async function announceClosedPoll(ctx: BotContext, poll: Poll): Promise<v
   const { client, db } = ctx;
   const channel = await client.channels.fetch(poll.channelId).catch(() => null);
   if (channel?.isSendable() && !channel.isDMBased()) {
-    const locale = channel.guild.preferredLocale;
+    const locale = serverLocale(db, poll.guildId, channel.guild.preferredLocale);
     try {
       if (poll.messageId) {
         await channel.messages.edit(poll.messageId, renderPoll(db, poll, locale));

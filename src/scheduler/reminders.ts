@@ -20,6 +20,7 @@ async function sendReminder({ client, db }: BotContext, { night, kind }: DueRemi
   const url = nightUrl(night);
   const sent = await postInChannel(
     client,
+    db,
     night.channelId,
     (locale) => {
       const m = t(locale).night;
