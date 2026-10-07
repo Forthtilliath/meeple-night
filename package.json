@@ -16,6 +16,7 @@
     "format": "biome check --write .",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
+    "pack:panel": "node scripts/pack-panel.mjs",
     "check": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
