@@ -2,7 +2,7 @@
 
 **Meeple Night** is a Discord bot for board game groups: organize game nights with RSVP and reminders, vote on which game to play, import the group's collection from [MyLudo](https://www.myludo.fr), track plays and rank players with a multiplayer Elo rating.
 
-Bilingual: every command, option and message is available in **English** and **French**, following each user's Discord language.
+Bilingual: every command, option and message is available in **English** and **French**. Private replies follow each user's Discord language; public messages (nights, votes, reminders) follow the server's language, set with `/settings language`.
 
 ![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
@@ -19,7 +19,7 @@ Bilingual: every command, option and message is available in **English** and **F
 | **Game vote** | `/vote start` · `/vote lancer` | Picks random games fitting the night's attendee count, approval voting via a select menu, live tally, automatic closing, random tie-break, optionally attendees only. The winner becomes the night's game |
 | **Plays** | `/play record · from_night · history · undo`<br>`/partie enregistrer · depuis_soiree · historique · annuler` | Players in finishing order, optional scores (ties supported), Elo change of each player. From a night: a form prefilled with the attendees. Only participants or organizers can record a play |
 | **Ranking** | `/leaderboard` · `/classement` | Elo ranking overall or per game, provisional players (fewer than 3 plays by default) hidden |
-| **Settings** | `/settings` · `/reglages` | Per server: timezone, organizer role, reminder delays (requires *Manage Server*) |
+| **Settings** | `/settings` · `/reglages` | Per server: timezone, organizer role, reminder delays, language of public messages (requires *Manage Server*) |
 
 ## Architecture
 
@@ -90,7 +90,7 @@ Requirements: Node.js 24+.
    Set `DISCORD_GUILD_ID` during development: commands are registered on that server only and show up instantly.
 
 3. In Discord, export your collection from MyLudo (JSON) and run `/collection import` with the file (requires *Manage Server* or the organizer role).
-4. Optionally run `/settings organizer_role` to let a role manage nights, votes and the collection, and `/settings timezone` if the server is not in the default timezone.
+4. Optionally run `/settings organizer_role` to let a role manage nights, votes and the collection, `/settings timezone` if the server is not in the default timezone, and `/settings language` to pick the language of public messages (by default the Discord server language, which only Community servers can change, so English otherwise).
 
 ### Environment variables
 
