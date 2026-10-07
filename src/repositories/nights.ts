@@ -1,6 +1,13 @@
-import { and, asc, eq, gt, lte, ne } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, lte, ne } from 'drizzle-orm';
 import type { Db } from '../db/client.js';
-import { type GameNight, gameNights, type Rsvp, type RsvpStatus, rsvps } from '../db/schema.js';
+import {
+  type GameNight,
+  gameNights,
+  type Recurrence,
+  type Rsvp,
+  type RsvpStatus,
+  rsvps,
+} from '../db/schema.js';
 import type { ReminderKind } from '../domain/reminders.js';
 
 export interface NewNight {
@@ -11,10 +18,102 @@ export interface NewNight {
   startsAt: Date;
   maxPlayers: number | null;
   createdBy: string;
+  recurrence?: Recurrence | null;
 }
+
+export type NightPatch = Partial<
+  Pick<
+    GameNight,
+    'title' | 'location' | 'startsAt' | 'maxPlayers' | 'gameId' | 'scheduledEventId' | 'recurrence'
+  >
+>;
 
 export function createNight(db: Db, night: NewNight): GameNight {
   return db.insert(gameNights).values(night).returning().get();
+}
+
+/** Applies changes; a new date re-arms both reminders. */
+export function updateNight(db: Db, nightId: number, patch: NightPatch): GameNight {
+  const rearm = patch.startsAt ? { reminderDaySent: false, reminderHoursSent: false } : {};
+  return db
+    .update(gameNights)
+    .set({ ...patch, ...rearm })
+    .where(eq(gameNights.id, nightId))
+    .returning()
+    .get() as GameNight;
+}
+
+/** Upcoming nights a member organizes, to cap how many one person can open. */
+export function countUpcomingNightsBy(db: Db, guildId: string, userId: string, now: Date) {
+  const row = db
+    .select({ total: count() })
+    .from(gameNights)
+    .where(
+      and(
+        eq(gameNights.guildId, guildId),
+        eq(gameNights.createdBy, userId),
+        eq(gameNights.status, 'scheduled'),
+        gt(gameNights.startsAt, now),
+      ),
+    )
+    .get();
+  return row?.total ?? 0;
+}
+
+/** Nights (of every guild) that started and were not processed yet, cancelled ones included. */
+export function nightsToStart(db: Db, now: Date): GameNight[] {
+  return db
+    .select()
+    .from(gameNights)
+    .where(and(eq(gameNights.startHandled, false), lte(gameNights.startsAt, now)))
+    .all();
+}
+
+/**
+ * Flags a started night and, for a recurring one, creates its next occurrence in the same
+ * transaction: a crash can neither skip nor duplicate an occurrence.
+ */
+export function handleNightStart(
+  db: Db,
+  night: GameNight,
+  nextStartsAt: Date | null,
+): GameNight | null {
+  return db.transaction((tx) => {
+    tx.update(gameNights).set({ startHandled: true }).where(eq(gameNights.id, night.id)).run();
+    if (!nextStartsAt || !night.recurrence) return null;
+    return tx
+      .insert(gameNights)
+      .values({
+        guildId: night.guildId,
+        channelId: night.channelId,
+        title: night.title,
+        location: night.location,
+        startsAt: nextStartsAt,
+        maxPlayers: night.maxPlayers,
+        createdBy: night.createdBy,
+        recurrence: night.recurrence,
+      })
+      .returning()
+      .get();
+  });
+}
+
+/** Nights of a guild that started recently, e.g. to record the play of the evening. */
+export function recentNights(db: Db, guildId: string, since: Date, until: Date): GameNight[] {
+  return db
+    .select()
+    .from(gameNights)
+    .where(
+      and(
+        eq(gameNights.guildId, guildId),
+        eq(gameNights.status, 'scheduled'),
+        gt(gameNights.startsAt, since),
+        lte(gameNights.startsAt, until),
+      ),
+    )
+    .orderBy(desc(gameNights.startsAt))
+    .limit(25)
+    .all();
 }
 
 export function setNightMessage(db: Db, nightId: number, messageId: string): void {

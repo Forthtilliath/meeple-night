@@ -31,7 +31,19 @@ export const fr: Messages = {
     maybe: 'Peut-être',
     declined: 'Absents',
     nobody: '—',
-    footer: (id) => `Soirée n°${id}`,
+    footer: (id, recurrence) =>
+      `Soirée n°${id}${recurrence ? ` · ${recurrence === 'weekly' ? 'chaque semaine' : 'une semaine sur deux'}` : ''}`,
+    game: 'Jeu',
+    calendar: 'Agenda',
+    calendarFile: 'Ouvre ce fichier pour ajouter la soirée à ton agenda.',
+    tooMany: (max) =>
+      `Tu organises déjà ${max} soirées à venir. Annules-en une, ou demande à un organisateur.`,
+    nothingToEdit: 'Rien à modifier : remplis au moins une option.',
+    edited: 'Soirée modifiée.',
+    noticeCancelled: (title, when) => `❌ **${title}** (${when}) est annulée.`,
+    noticeChanged: (title, when, location) =>
+      `✏️ **${title}** a changé : ${when}${location ? ` · ${location}` : ''}.`,
+    noticePromoted: (title) => `🎉 Une place s'est libérée pour **${title}** : tu en es !`,
     cancelledTitle: (title) => `${title} (annulée)`,
     cancelled: 'Soirée annulée.',
     noUpcoming: 'Aucune soirée à venir. Crées-en une avec `/soiree creer`.',
