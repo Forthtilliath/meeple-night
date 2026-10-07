@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { GameNight, Rsvp } from '../../src/db/schema.js';
-import { attendance, dueReminders } from '../../src/domain/reminders.js';
+import {
+  attendance,
+  dueReminders,
+  interestedUsers,
+  promotedUsers,
+} from '../../src/domain/reminders.js';
 
 const now = new Date('2026-10-10T12:00:00Z');
 const hours = (h: number) => new Date(now.getTime() + h * 3_600_000);
@@ -80,6 +85,13 @@ describe('attendance', () => {
       2,
     );
     expect(result).toEqual({ confirmed: ['a', 'b'], waitlist: ['c'], maybe: ['d'], declined: [] });
+  });
+
+  it('finds the users promoted from the waitlist', () => {
+    const before = attendance([rsvp('a', 'yes', 1), rsvp('b', 'yes', 2), rsvp('c', 'yes', 3)], 1);
+    const after = attendance([rsvp('a', 'no', 4), rsvp('b', 'yes', 2), rsvp('c', 'yes', 3)], 1);
+    expect(promotedUsers(before, after)).toEqual(['b']);
+    expect(interestedUsers(after)).toEqual(['b', 'c']);
   });
 
   it('has no waitlist without a cap', () => {

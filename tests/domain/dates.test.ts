@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { discordTimestamp, parseLocalDateTime } from '../../src/domain/dates.js';
+import {
+  addLocalDays,
+  discordTimestamp,
+  localDateTime,
+  parseLocalDateTime,
+} from '../../src/domain/dates.js';
 
 describe('parseLocalDateTime', () => {
   it('converts Paris summer time (UTC+2)', () => {
@@ -34,6 +39,31 @@ describe('parseLocalDateTime', () => {
     ['2026-10-10', '20:75'],
   ])('rejects %s %s', (date, time) => {
     expect(parseLocalDateTime(date, time, 'Europe/Paris')).toBeNull();
+  });
+});
+
+describe('localDateTime', () => {
+  it('gives the wall clock of an instant', () => {
+    expect(localDateTime(new Date('2026-10-24T18:30:00Z'), 'Europe/Paris')).toEqual({
+      date: '2026-10-24',
+      time: '20:30',
+    });
+    expect(localDateTime(new Date('2026-01-16T00:00:00Z'), 'America/New_York')).toEqual({
+      date: '2026-01-15',
+      time: '19:00',
+    });
+  });
+});
+
+describe('addLocalDays', () => {
+  it('keeps the local time across a DST change', () => {
+    const before = new Date('2026-10-24T18:30:00Z'); // 20:30 in Paris, summer time
+    expect(addLocalDays(before, 7, 'Europe/Paris').toISOString()).toBe('2026-10-31T19:30:00.000Z');
+  });
+
+  it('crosses month and year boundaries', () => {
+    const night = new Date('2026-12-28T19:00:00Z');
+    expect(addLocalDays(night, 14, 'Europe/Paris').toISOString()).toBe('2027-01-11T19:00:00.000Z');
   });
 });
 
