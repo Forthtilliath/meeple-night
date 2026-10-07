@@ -4,6 +4,7 @@ import {
   MessageFlags,
   SlashCommandBuilder,
 } from 'discord.js';
+import { DownloadError, downloadAttachment } from '../bot/download.js';
 import { isManager } from '../bot/permissions.js';
 import type { BotContext, ChatInput, Command } from '../bot/types.js';
 import { parseMyLudoExport } from '../domain/myludo.js';
@@ -80,10 +81,10 @@ async function importCollection(interaction: ChatInput, { db, timezone }: BotCon
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   let parsed: ReturnType<typeof parseMyLudoExport>;
   try {
-    const response = await fetch(file.url);
-    parsed = parseMyLudoExport(await response.text());
-  } catch {
-    await interaction.editReply(m.collection.parseError);
+    parsed = parseMyLudoExport(await downloadAttachment(file.url, { maxBytes: MAX_FILE_SIZE }));
+  } catch (error) {
+    const tooLarge = error instanceof DownloadError && error.reason === 'size';
+    await interaction.editReply(tooLarge ? m.collection.tooLarge : m.collection.parseError);
     return;
   }
   const { created, updated } = importGames(db, interaction.guildId, parsed.games);
